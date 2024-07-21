@@ -11,7 +11,7 @@
 			<xsl:when test="number($value) = number($value) and not($value = '')">
 				<xsl:value-of select="format-number($value,$mask)"/>
 			</xsl:when>
-			<xsl:when test="count($value) > 0">
+			<xsl:when test="$value">
 				<xsl:value-of select="format-number(sum($value),$mask)"/>
 			</xsl:when>
 			<xsl:otherwise>

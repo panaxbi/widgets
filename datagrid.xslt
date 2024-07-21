@@ -13,7 +13,7 @@ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 xmlns:datagrid="http://panaxbi.com/widget/datagrid"
 xmlns:xo="http://panax.io/xover"
 >
-	<xsl:import href="../functions.xslt"/>
+	<xsl:import href="functions.xslt"/>
 	<xsl:key name="state:hidden" match="@*[namespace-uri()!='']" use="name()"/>
 	<xsl:key name="state:collapsed" match="*[@state:collapsed]" use="@key"/>
 

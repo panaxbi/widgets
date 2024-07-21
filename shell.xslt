@@ -126,7 +126,7 @@ xmlns:xlink="http://www.w3.org/1999/xlink"
 				</div>
 			</footer>
 			<aside class="sidebar" xo-source="#sitemap" xo-stylesheet="sitemap.xslt" id="sitemap"/>
-			<div class="settings" xo-source="#settings" xo-stylesheet="settings.xslt"/>
+			<div class="settings" xo-source="#settings" xo-stylesheet="widgets/settings.xslt"/>
 		</div>
 	</xsl:template>
 

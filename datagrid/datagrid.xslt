@@ -195,7 +195,7 @@ xmlns:xo="http://panax.io/xover"
 				}
 			]]>
 		</style>
-		<script src="script.js" fetchpriority="high"/>
+		<script src="datagrid.js" fetchpriority="high"/>
 		<table class="table table-striped selection-enabled datagrid">
 			<xsl:apply-templates mode="datagrid:colgroup" select=".">
 				<xsl:with-param name="x-dimension" select="$x-dimensions"/>

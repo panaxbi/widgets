@@ -379,7 +379,9 @@ xmlns:xo="http://panax.io/xover"
 		<xsl:param name="x-dimension" select="node-expected"/>
 		<tr>
 			<th></th>
-			<xsl:apply-templates mode="datagrid:footer-cell" select="$x-dimension"/>
+			<xsl:apply-templates mode="datagrid:footer-cell" select="$x-dimension">
+				<xsl:sort select="namespace-uri()" order="descending"/>
+			</xsl:apply-templates>
 		</tr>
 	</xsl:template>
 

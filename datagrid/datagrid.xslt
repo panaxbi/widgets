@@ -10,7 +10,7 @@ xmlns:visible="http://panax.io/state/visible"
 xmlns:dummy="http://panax.io/dummy"
 xmlns:env="http://panax.io/state/environment"
 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-xmlns:datagrid="http://panaxbi.com/widget/datagrid"
+xmlns:datagrid="http://widgets.panaxbi.com/datagrid"
 xmlns:xo="http://panax.io/xover"
 >
 	<xsl:import href="../functions.xslt"/>

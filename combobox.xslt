@@ -83,7 +83,7 @@
 							</xsl:apply-templates>
 						</xsl:attribute>
 						<xsl:attribute name="onfocus">
-							<xsl:text/>event.preventDefault(); this.value = scope.value || `<xsl:value-of select="current()"/>` || this.value;<xsl:text/>
+							<xsl:text/>event.preventDefault(); this.value = scope.value || `<xsl:value-of select="normalize-space(current())"/>`.trim() || this.value;<xsl:text/>
 						</xsl:attribute>
 					</input>
 				</div>
@@ -331,9 +331,11 @@ xo.listener.on('hide.bs.dropdown', function() {
 		<xsl:value-of select="../@key"/>
 	</xsl:template>
 
+	<xsl:template mode="combobox:display-text" match="*"/>
+
 	<xsl:template mode="combobox:display-text" match="@*">
 		<xsl:param name="dataset" select="node-expected"/>
-		<xsl:value-of select="$dataset[../@id=current() or ../@key=current()]"/>
+		<xsl:value-of select="normalize-space($dataset[../@id=current() or ../@key=current()])"/>
 	</xsl:template>
 
 	<xsl:template mode="combobox:option-selected" match="*[@id or @key]/@*">

@@ -5,7 +5,6 @@ xmlns:xo="http://panax.io/xover"
 xmlns:px="http://panax.io/entity"
 xmlns:site="http://panax.io/site"
 xmlns:shell="http://panax.io/shell"
-xmlns:meta="http://panax.io/metadata"
 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 xmlns:widget="http://panax.io/widget"
 >

@@ -7,16 +7,15 @@ xmlns:state="http://panax.io/state"
 xmlns:site="http://panax.io/site"
 xmlns:meta="http://panax.io/site/meta"
 				
-xmlns:source="http://panax.io/xover/binding/source"
 xmlns:js="http://panax.io/languages/javascript"
-xmlns:login="http://panaxbi.com/widget/login"
+xmlns:login="http://widgets.panaxbi.com/login"
 >
 	<xsl:output method="xml"
 	   omit-xml-declaration="yes"
 	   indent="yes"/>
 
 	<xsl:param name="session:debug"/>
-	
+
 	<xsl:param name="session:user_login"/>
 	<xsl:param name="session:status"/>
 	<xsl:param name="session:connection_id"/>
@@ -27,8 +26,12 @@ xmlns:login="http://panaxbi.com/widget/login"
 	<xsl:param name="site:location-pathname"/>
 	<xsl:param name="meta:google-signin-client_id"/>
 
-	<xsl:template match="/*" priority="-1">
-		<div class="login">
+	<xsl:template match="/" priority="-1">
+		<xsl:apply-templates mode="login:widget"/>		
+	</xsl:template>
+	
+	<xsl:template match="*" mode="login:widget">
+		<section class="login" xo:use-attribute-sets="login:widget">
 			<xsl:if test="$js:secure='true'">
 				<link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet" type="text/css"/>
 				<script src="https://accounts.google.com/gsi/client" async="" defer=""></script>
@@ -175,7 +178,7 @@ xmlns:login="http://panaxbi.com/widget/login"
 				console.log("Password autofilled");
 				});
 			</script>-->
-		</div>
+		</section>
 	</xsl:template>
 
 	<xsl:template mode="login:button" match="*|@*">

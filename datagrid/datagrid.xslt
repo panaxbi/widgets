@@ -5,6 +5,7 @@ xmlns:session="http://panax.io/session"
 xmlns:data="http://panax.io/data"
 xmlns:state="http://panax.io/state"
 xmlns:group="http://panax.io/state/group"
+xmlns:collapse="http://panax.io/state/collapse"
 xmlns:filter="http://panax.io/state/filter"
 xmlns:visible="http://panax.io/state/visible"
 xmlns:dummy="http://panax.io/dummy"
@@ -41,6 +42,10 @@ xmlns:xo="http://panax.io/xover"
 	<xsl:key name="y-dimension" match="node-expected/*" use="name(..)"/>
 
 	<xsl:param name="state:groupBy">*</xsl:param>
+	<xsl:param name="state:collapse_all"></xsl:param>
+	<xsl:param name="state:hide_empty">false</xsl:param>
+
+	<xsl:key name="collapse:group" match="collapse:groups/row/@*[namespace-uri()='']" use="concat(name(),'::',.)"/>
 
 	<xsl:template mode="datagrid:widget" match="*|@*">
 		<xsl:param name="x-dimensions" select="(@*[namespace-uri()='']|@*[namespace-uri()='http://panax.io/state/group'])[not(key('data:group', concat('group:',name())))]"/>
@@ -56,6 +61,10 @@ xmlns:xo="http://panax.io/xover"
         table thead.freeze > tr td, table thead.freeze > tr th {
           position: sticky;
         }
+		
+		table > thead th {
+			vertical-align: middle;
+		}
 
         table > thead.freeze > tr:nth-child(1) > td, table > thead.freeze > tr:nth-child(1) > th {
           top: 0px;
@@ -96,39 +105,44 @@ xmlns:xo="http://panax.io/xover"
 		
 		.sticky {
 			position: sticky;
-			top: var(--sticky-top, 45px);
+			top: var(--sticky-group-height, 40px);
 			background-color: var(--sticky-bg-color, white);
+			height: var(--sticky-group-height, 40px);
 		}
 		
-		.sticky.header-level-2 {
-			top: calc(var(--sticky-top, 45px)* 2);
+		.sticky.group-level-1 {
+			top: calc(var(--sticky-headers-height, 46px) + var(--sticky-group-height, 40px)* 0);
 		}
 		
-		.sticky.header-level-3 {
-			top: calc(var(--sticky-top, 45px)* 3);
+		.sticky.group-level-2 {
+			top: calc(var(--sticky-headers-height, 46px) + var(--sticky-group-height, 40px)* 1);
 		}
 		
-		.sticky.header-level-4 {
-			top: calc(var(--sticky-top, 45px)* 4);
+		.sticky.group-level-3 {
+			top: calc(var(--sticky-headers-height, 46px) + var(--sticky-group-height, 40px)* 2);
 		}
 		
-		.sticky.header-level-5 {
-			top: calc(var(--sticky-top, 45px)* 5);
+		.sticky.group-level-4 {
+			top: calc(var(--sticky-headers-height, 46px) + var(--sticky-group-height, 40px)* 3);
 		}
 		
-		.header-level-2 th {
+		.sticky.group-level-5 {
+			top: calc(var(--sticky-headers-height, 46px) + var(--sticky-group-height, 40px)* 4);
+		}
+		
+		.group-level-2 th {
 			background-color: var(--datagrid-tr-header-bg-level-2, silver) !important;
 		}
 		
-		.header-level-3 th {
+		.group-level-3 th {
 			background-color: var(--datagrid-tr-header-bg-level-3, silver) !important;
 		}
 		
-		.header-level-4 th {
+		.group-level-4 th {
 			background-color: var(--datagrid-tr-header-bg-level-4, silver) !important;
 		}
 		
-		.header-level-5 th {
+		.group-level-5 th {
 			background-color: var(--datagrid-tr-header-bg-level-5, silver) !important;
 		}
 		
@@ -171,7 +185,8 @@ xmlns:xo="http://panax.io/xover"
 				}
 				
 				:root {
-					--sticky-top: 34px;
+					--sticky-headers-height: 46px;
+					--sticky-group-height: 40px;
 				}
 				
 				.datagrid a {
@@ -180,9 +195,9 @@ xmlns:xo="http://panax.io/xover"
 					cursor: pointer;
 				}
 				
-				tbody .header th[scope="row"] {
+				/*tbody .header th[scope="row"] {
 					text-align: right;
-				}
+				}*/
 				
 				.arrow {
 					width: 0;
@@ -192,6 +207,47 @@ xmlns:xo="http://panax.io/xover"
 					border-top: 10px solid red;
 					display: none;
 					position: absolute;
+				}
+				
+				.icon-btn {
+					margin-right: 1rem;
+				}
+				
+				th:has(tab-space) {
+					padding: 0 !important;
+				}
+				
+				tab-space {		
+					position: relative;
+					height: 40px;
+					display: block;
+				}
+
+				tab-space:before {
+					background: var(--group-child-indicator, cornsilk);
+					bottom: auto;
+					content: "";
+					height: 8px;
+					left: 23px;
+					margin-top: 17px;
+					position: absolute;
+					right: auto;
+					width: 8px;
+					z-index: 1;
+					border-radius: 50%;
+				}
+
+				tab-space:after {
+					border-left: 1px solid var(--group-child-indicator, cornsilk);
+					bottom: 0;
+					content: "";
+					left: 27px;
+					position: absolute;
+					top: 0;
+				}
+				
+				tbody, td, tfoot, th, thead, tr {
+					border-style: initial !important;
 				}
 			]]>
 		</style>
@@ -237,14 +293,36 @@ xmlns:xo="http://panax.io/xover"
 		<xsl:variable name="current" select="current()"/>
 		<xsl:variable name="rows" select="$y-dimension[self::*]|self::*[not(*)]/@state:record_count|$y-dimension[not(self::*)][.=$current]/.."/>
 		<xsl:if test="self::* or not(self::*) and $rows">
-			<tbody class="table-group-divider">
+			<tbody>
+				<xsl:variable name="collapse:match" select="key('collapse:group', concat(local-name(current()/../..),'::',.))"/>
+				<xsl:variable name="collapse">
+					<xsl:for-each select="$collapse:match/parent::*[count(@*[namespace-uri()=''])=count($parent-groups|.)]">
+						<xsl:for-each select="@*[namespace-uri()='']">
+							<xsl:if test="position()=1">,</xsl:if>
+							<xsl:choose>
+								<xsl:when test="$rows/@*[name()=local-name(current())] = current()">1</xsl:when>
+								<xsl:otherwise>0</xsl:otherwise>
+							</xsl:choose>
+						</xsl:for-each>
+					</xsl:for-each>
+				</xsl:variable>
+				<xsl:variable name="collapse_value">
+					<xsl:for-each select="$parent-groups|.">
+						<xsl:if test="position()=1">,</xsl:if>
+						<xsl:text>1</xsl:text>
+					</xsl:for-each>
+				</xsl:variable>
+				<!-- class="table-group-divider" -->
+				<xsl:variable name="collapsed" select="contains($collapse,$collapse_value)"/>
 				<xsl:apply-templates mode="datagrid:tbody-header" select=".">
 					<xsl:with-param name="x-dimension" select="$x-dimension"/>
 					<xsl:with-param name="rows" select="$rows"/>
 					<xsl:with-param name="groups" select="$groups"/>
 					<xsl:with-param name="parent-groups" select="$parent-groups"/>
+					<xsl:with-param name="collapsed" select="$collapsed"/>
 				</xsl:apply-templates>
 				<xsl:choose>
+					<xsl:when test="$collapsed"></xsl:when>
 					<xsl:when test="$groups">
 						<xsl:apply-templates mode="datagrid:tbody" select="$groups[1]">
 							<xsl:with-param name="x-dimension" select="$x-dimension"/>
@@ -253,12 +331,12 @@ xmlns:xo="http://panax.io/xover"
 							<xsl:with-param name="parent-groups" select="$parent-groups|."/>
 						</xsl:apply-templates>
 					</xsl:when>
-					<xsl:otherwise>
+					<xsl:when test="not(//@group:*[1] and $state:collapse_all = 'true')">
 						<xsl:apply-templates mode="datagrid:row" select="$rows">
 							<xsl:with-param name="x-dimension" select="$x-dimension"/>
 							<xsl:with-param name="parent-groups" select="$parent-groups|."/>
 						</xsl:apply-templates>
-					</xsl:otherwise>
+					</xsl:when>
 				</xsl:choose>
 				<xsl:apply-templates mode="datagrid:tbody-footer" select=".">
 					<xsl:with-param name="x-dimension" select="$x-dimension"/>
@@ -367,7 +445,43 @@ xmlns:xo="http://panax.io/xover"
 		<xsl:param name="x-dimension" select="node-expected"/>
 		<tr>
 			<th scope="col">
-				#
+				<div class="dropdown">
+					<button class="btn btn-secondary dropdown-toggle btn-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+						<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" class="bi bi-gear-fill" viewBox="0 0 16 16">
+							<path d="M9.405 1.05c-.413-1.4-2.397-1.4-2.81 0l-.1.34a1.464 1.464 0 0 1-2.105.872l-.31-.17c-1.283-.698-2.686.705-1.987 1.987l.169.311c.446.82.023 1.841-.872 2.105l-.34.1c-1.4.413-1.4 2.397 0 2.81l.34.1a1.464 1.464 0 0 1 .872 2.105l-.17.31c-.698 1.283.705 2.686 1.987 1.987l.311-.169a1.464 1.464 0 0 1 2.105.872l.1.34c.413 1.4 2.397 1.4 2.81 0l.1-.34a1.464 1.464 0 0 1 2.105-.872l.31.17c1.283.698 2.686-.705 1.987-1.987l-.169-.311a1.464 1.464 0 0 1 .872-2.105l.34-.1c1.4-.413 1.4-2.397 0-2.81l-.34-.1a1.464 1.464 0 0 1-.872-2.105l.17-.31c.698-1.283-.705-2.686-1.987-1.987l-.311.169a1.464 1.464 0 0 1-2.105-.872zM8 10.93a2.929 2.929 0 1 1 0-5.86 2.929 2.929 0 0 1 0 5.858z"/>
+						</svg>
+					</button>
+					<ul class="dropdown-menu">
+						<xsl:if test="$state:hide_empty!=''">
+							<li>
+								<a class="dropdown-item" href="#" onclick="xo.state.hide_empty = !xo.state.hide_empty">
+									<xsl:choose>
+										<xsl:when test="$state:hide_empty='true'">Mostrar registros en ceros</xsl:when>
+										<xsl:otherwise>Ocultar registros en ceros</xsl:otherwise>
+									</xsl:choose>
+								</a>
+							</li>
+						</xsl:if>
+						<xsl:if test="//@group:*[1]|//@filter:*[1]">
+							<li>
+								<a class="dropdown-item" href="#" onclick="xo.stores.active.select(`//@group:*|//@filter:*`).remove()">Borrar filtros y agrupaciones</a>
+							</li>
+						</xsl:if>
+						<xsl:if test="//@group:*[1]">
+							<li>
+								<a class="dropdown-item" href="#" onclick="xo.state.collapse_all = true">
+									<xsl:choose>
+										<xsl:when test="$state:collapse_all = 'true'">
+											<xsl:attribute name="onclick">xo.state.collapse_all = false</xsl:attribute>
+											Expandir todo
+										</xsl:when>
+										<xsl:otherwise>Colapsar todo</xsl:otherwise>
+									</xsl:choose>
+								</a>
+							</li>
+						</xsl:if>
+					</ul>
+				</div>
 			</th>
 			<xsl:apply-templates mode="datagrid:header-cell" select="$x-dimension">
 				<xsl:sort select="namespace-uri()" order="descending"/>
@@ -379,9 +493,19 @@ xmlns:xo="http://panax.io/xover"
 		<xsl:param name="x-dimension" select="node-expected"/>
 		<tr>
 			<th></th>
-			<xsl:apply-templates mode="datagrid:footer-cell" select="$x-dimension">
-				<xsl:sort select="namespace-uri()" order="descending"/>
-			</xsl:apply-templates>
+			<xsl:choose>
+				<xsl:when test="namespace-uri()='http://panax.io/state/group'">
+					<!--<xsl:attribute name="style">max-width:5px; overflow: hidden;</xsl:attribute>-->
+					<xsl:apply-templates mode="datagrid:footer-cell" select="$x-dimension">
+						<xsl:sort select="namespace-uri()" order="descending"/>
+					</xsl:apply-templates>
+				</xsl:when>
+				<xsl:otherwise>
+					<xsl:apply-templates mode="datagrid:footer-cell" select="$x-dimension">
+						<xsl:sort select="namespace-uri()" order="descending"/>
+					</xsl:apply-templates>
+				</xsl:otherwise>
+			</xsl:choose>
 		</tr>
 	</xsl:template>
 
@@ -412,7 +536,15 @@ xmlns:xo="http://panax.io/xover"
 			<xsl:apply-templates mode="datagrid:cell-class-by-type" select="."/>
 		</xsl:variable>
 		<td xo-scope="inherit" xo-slot="{local-name()}" class="text-nowrap {$text-filter} {$classes} cell domain-{local-name()}">
-			<xsl:apply-templates mode="datagrid:cell-content" select="$cell"/>
+			<xsl:choose>
+				<xsl:when test="namespace-uri()='http://panax.io/state/group'">
+					<!--<xsl:attribute name="style">max-width:5px; overflow: hidden;</xsl:attribute>-->
+					<xsl:apply-templates mode="datagrid:cell-content" select="$cell"/>
+				</xsl:when>
+				<xsl:otherwise>
+					<xsl:apply-templates mode="datagrid:cell-content" select="$cell"/>
+				</xsl:otherwise>
+			</xsl:choose>
 		</td>
 	</xsl:template>
 
@@ -427,13 +559,27 @@ xmlns:xo="http://panax.io/xover"
 			<xsl:apply-templates mode="datagrid:header-cell-classes" select="."/>
 		</xsl:variable>
 		<th scope="col" draggable="true" class="drag-group-headers drag-group-dim">
-			<div class="d-flex flex-nowrap">
-				<xsl:apply-templates mode="datagrid:header-cell-options" select="."/>
-				<label class="{$classes}">
-					<xsl:apply-templates mode="datagrid:header-cell-content" select="."/>
-				</label>
-				<xsl:apply-templates mode="datagrid:header-cell-icons" select="."/>
-			</div>
+			<xsl:choose>
+				<xsl:when test="namespace-uri()='http://panax.io/state/group'">
+					<!--<xsl:attribute name="style">max-width:5px; overflow: hidden;</xsl:attribute>-->
+					<div class="d-flex flex-nowrap">
+						<xsl:apply-templates mode="datagrid:header-cell-options" select="."/>
+						<label class="{$classes}">
+							<xsl:apply-templates mode="datagrid:header-cell-content" select="."/>
+						</label>
+						<xsl:apply-templates mode="datagrid:header-cell-icons" select="."/>
+					</div>
+				</xsl:when>
+				<xsl:otherwise>
+					<div class="d-flex flex-nowrap">
+						<xsl:apply-templates mode="datagrid:header-cell-options" select="."/>
+						<label class="{$classes}">
+							<xsl:apply-templates mode="datagrid:header-cell-content" select="."/>
+						</label>
+						<xsl:apply-templates mode="datagrid:header-cell-icons" select="."/>
+					</div>
+				</xsl:otherwise>
+			</xsl:choose>
 		</th>
 	</xsl:template>
 
@@ -551,14 +697,14 @@ xmlns:xo="http://panax.io/xover"
 	<xsl:key name="datagrid:group" use="'collapsed'" match="row[@state:collapsed='true']/@*" />
 
 	<xsl:template mode="datagrid:group-buttons" match="@*">
-		<!--<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-dash-square" viewBox="0 0 16 16" style="cursor:pointer;" xo-slot="state:collapsed" onclick="scope.toggle('true')">
+		<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-dash-square icon-btn" viewBox="0 0 16 16" style="cursor:pointer;" onclick="dispatch('collapse')">
 			<path d="M14 1a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h12zM2 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H2z"></path>
 			<path d="M4 8a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7A.5.5 0 0 1 4 8z"></path>
-		</svg>-->
+		</svg>
 	</xsl:template>
 
 	<xsl:template mode="datagrid:group-buttons" match="row[@state:collapsed='true']/@*" priority="1">
-		<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus-square" viewBox="0 0 16 16" style="cursor:pointer;" xo-slot="state:collapsed" onclick="scope.remove()">
+		<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus-square icon-btn" viewBox="0 0 16 16" style="cursor:pointer;" onclick="dispatch('expand')">
 			<path d="M14 1a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h12zM2 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H2z"></path>
 			<path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"></path>
 		</svg>
@@ -574,36 +720,60 @@ xmlns:xo="http://panax.io/xover"
 		<xsl:param name="groups" select="node-expected"/>
 		<xsl:param name="parent-groups" select="node-expected"/>
 		<xsl:param name="rows" select="key('data',.)"/>
-		<tr class="header sticky header-level-{count($parent-groups) + 1}">
-			<th scope="row" colspan="{count($parent-groups) + 1}">
-				<xsl:apply-templates mode="datagrid:group-buttons" select="."/>
+		<xsl:param name="collapsed" select="false()"/>
+
+		<xsl:variable name="current" select="current()"/>
+		<xsl:variable name="collapse:match" select="key('collapse:group', concat(local-name(current()/../..),'::',.))"/>
+		<tr class="header sticky group-level-{count($parent-groups) + 1}">
+			<th style="text-align: center;">
+				&#160;
 			</th>
-			<th style="white-space: nowrap;" colspan="{count($groups) + 1}">
-				<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-stack ms-2 button" viewBox="0 0 16 16" onclick="dispatch('ungroup')">
-					<path d="m14.12 10.163 1.715.858c.22.11.22.424 0 .534L8.267 15.34a.6.6 0 0 1-.534 0L.165 11.555a.299.299 0 0 1 0-.534l1.716-.858 5.317 2.659c.505.252 1.1.252 1.604 0l5.317-2.66zM7.733.063a.6.6 0 0 1 .534 0l7.568 3.784a.3.3 0 0 1 0 .535L8.267 8.165a.6.6 0 0 1-.534 0L.165 4.382a.299.299 0 0 1 0-.535z"/>
-					<path d="m14.12 6.576 1.715.858c.22.11.22.424 0 .534l-7.568 3.784a.6.6 0 0 1-.534 0L.165 7.968a.299.299 0 0 1 0-.534l1.716-.858 5.317 2.659c.505.252 1.1.252 1.604 0z"/>
-				</svg>
+			<xsl:for-each select="$parent-groups">
+				<xsl:sort select="position()" order="descending"/>
+				<th class="parent-group" xo-scope="{$rows/@xo:id}" xo-slot="{name($rows/@*[name()=local-name(current()/../..)])}">
+					<tab-space style="padding-right: 4rem; margin-left: -10px;"></tab-space>
+				</th>
+			</xsl:for-each>
+			<th scope="row" colspan="{count($groups) + 1}" style="white-space: nowrap;" xo-scope="{$rows/@xo:id}" xo-slot="{name($rows/@*[name()=local-name(current()/../..)])}">
+				<xsl:choose>
+					<xsl:when test="$collapsed">
+						<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus-square icon-btn" viewBox="0 0 16 16" style="cursor:pointer;" onclick="dispatch('expand')">
+							<path d="M14 1a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h12zM2 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H2z"></path>
+							<path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"></path>
+						</svg>
+					</xsl:when>
+					<xsl:otherwise>
+						<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-dash-square icon-btn" viewBox="0 0 16 16" style="cursor:pointer;" onclick="dispatch('collapse')">
+							<path d="M14 1a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h12zM2 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H2z"></path>
+							<path d="M4 8a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7A.5.5 0 0 1 4 8z"></path>
+						</svg>
+					</xsl:otherwise>
+				</xsl:choose>
+				<!--<xsl:apply-templates mode="datagrid:group-buttons" select="."/>-->
 				<strong>
 					<xsl:apply-templates select="../@desc"/>
 				</strong>
 			</th>
-			<!--<xsl:apply-templates mode="datagrid:header-cell" select="$x-dimension[not(key('data:group',concat('group:',name())))]">
-				
-			
-			</xsl:apply-templates>-->
+			<!--<th scope="row" colspan="{count($groups|$parent-groups) + 1}" style="white-space: nowrap;">
+				<xsl:for-each select="$parent-groups|.">
+					<xsl:sort select="namespace-uri()" order="descending"/>
+					<xsl:choose>
+						<xsl:when test="position()=last()">
+							<xsl:apply-templates mode="datagrid:group-buttons" select="."/>
+						</xsl:when>
+						<xsl:otherwise>
+							<tab-space style="padding-right: 4rem; margin-left: 5px;">|</tab-space>
+						</xsl:otherwise>
+					</xsl:choose>
+
+				</xsl:for-each>
+				<strong>
+					<xsl:apply-templates select="../@desc"/>
+				</strong>
+			</th> TODO: Implementar esto cuando se quiean ocultar las columnas que están agrupando -->
 			<xsl:apply-templates mode="datagrid:tbody-header-cell" select="$x-dimension[namespace-uri()='']">
 				<xsl:with-param name="rows" select="$rows"/>
 			</xsl:apply-templates>
-			<!--<th colspan="{count($x-dimension)-2}">
-			</th>-->
-			<!--<th class="money">
-				<strong>
-					<xsl:variable name="last_field" select="name($x-dimension[last()])"/>
-					<xsl:call-template name="format">
-						<xsl:with-param name="value" select="sum($rows/@*[name()=$last_field][.!=''])"/>
-					</xsl:call-template>
-				</strong>
-			</th>-->
 		</tr>
 	</xsl:template>
 

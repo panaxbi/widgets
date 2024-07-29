@@ -323,12 +323,12 @@ xo.listener.on('hide.bs.dropdown', function() {
 	<xsl:template mode="combobox:attributes" match="@*|*"/>
 	<xsl:template mode="combobox:option-attributes" match="@*|*"/>
 
-	<xsl:template mode="combobox:option-value" match="*[@id]/@*">
-		<xsl:value-of select="../@id"/>
-	</xsl:template>
-
 	<xsl:template mode="combobox:option-value" match="*[@key]/@*">
 		<xsl:value-of select="../@key"/>
+	</xsl:template>
+
+	<xsl:template mode="combobox:option-value" match="*[@id]/@*">
+		<xsl:value-of select="../@id"/>
 	</xsl:template>
 
 	<xsl:template mode="combobox:display-text" match="*"/>

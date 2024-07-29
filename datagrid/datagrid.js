@@ -179,3 +179,106 @@ xover.listener.on(`columnRearranged`, function () {
 	attributes.forEach(attr => node.setAttributeNode(attr));
 	tr.store.save();
 })
+
+let collapse_or_expand = function () {
+	let store = this.store;
+	let scope = this.closest('td,th').scope;
+	let groups = store.select(`//@group:*`);
+	let ix = groups.findIndex(attr => attr.nodeName == `group:${scope.localName}`);
+	groups.splice(ix + 1);
+	let parent_groups = this.closest("td,th").select("preceding-sibling::*[contains(@class,'parent-group')]").map(el => el.scope).concat(scope);
+	let collapse_node = store.selectFirst(`//collapse:groups`);
+	if (!collapse_node) {
+		store.documentElement.prepend(xover.xml.createElement(`collapse:groups`));
+		collapse_node = store.selectFirst(`//collapse:groups`);
+		if (!collapse_node instanceof Element) {
+			throw (`Couln't collapse group`)
+		}
+	}
+	let row = xover.xml.createElement("row");
+	for (let attr of parent_groups) {
+		row.setAttribute(attr.nodeName, attr.value);
+	}
+	let predicate = [...row.attributes].map((attr) => `[@${attr.nodeName}="${attr.value}"]`).join('');
+	let matches = collapse_node.select(`row${predicate}`).filter(el => row.attributes.length == [...el.attributes].filter(a => !(a.namespaceURI)).length);
+	return { matches, collapse_node, row };
+}
+
+xo.listener.on('collapse', function () {
+	event.stopPropagation()
+	let { matches, collapse_node, row } = collapse_or_expand.call(this);
+	if (!matches.length) {
+		collapse_node.prepend(row);
+	}
+})
+
+xo.listener.on(`change::state:collapse_all`, function () {
+	xover.stores.active.select(`//collapse:groups/row`).remove()
+})
+
+xo.listener.on('expand', function () {
+	event.stopPropagation()
+	let { matches } = collapse_or_expand.call(this);
+	for (let match of matches) {
+		match.remove()
+	}
+})
+
+async function generateExcelFile(table, name) {
+	let progress = await xo.sources["loading.xslt"].render();
+	await xover.delay(500);
+	//if (this.Interval) window.clearInterval(this.Interval);
+	let _progress = 0;
+	let progress_bar = progress[0].querySelector('progress');
+	progress_bar.style.display = 'inline';
+
+	//this.Interval = setInterval(function () {
+	//    if (progress_bar) {
+	//        progress_bar.value = _progress;
+	//        console.log(_progress);
+	//    }
+	//}, 500);
+	table = table.cloneNode(true);
+	table.querySelectorAll('del,.hidden').toArray().remove();
+	debugger
+	for (a of table.querySelectorAll('a')) {
+		a.replaceWith(a.createTextNode(a.selectFirst("text()[1]")))
+	}
+	let set_computed_background = function (cell) {
+		let border = cell.style.border;
+		let backgroundColor = cell.style.backgroundColor;
+		let color = cell.style.color;
+		let styleSheets = document.styleSheets;
+		for (let styleSheet of [...styleSheets]) {
+			try {
+				for (let rule of [...styleSheet.rules].filter(rule => rule.selectorText && (rule.style.border || rule.style.backgroundColor || rule.style.color) && cell.matches(rule.selectorText))) {
+					if (!border && rule.style.border) {
+						cell.style.border = rule.style.border;
+					}
+					if (!backgroundColor && rule.style.backgroundColor) {
+						cell.style.backgroundColor = rule.style.backgroundColor;
+					}
+					if (!color && rule.style.color) {
+						cell.style.color = rule.style.color;
+					}
+				}
+			} catch (e) {
+				console.warn(e)
+			}
+		}
+	}
+	let rows = table.getElementsByTagName("tr");
+	let r = 0;
+	for (let row of rows) {
+		++r;
+		_progress = r / rows.length * 100;
+		[...row.getElementsByTagName("td")].forEach(el => set_computed_background(el));
+		if (r % (rows.length / 10) == 0) {
+			progress_bar.value = _progress;
+			await xover.delay(500);
+		}
+	}
+	xo.dom.toExcel(table, name.split("?")[0])
+	progress.remove();
+	if (this.Interval) window.clearInterval(this.Interval);
+}

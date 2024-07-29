@@ -274,8 +274,6 @@ xmlns:state="http://panax.io/state"
 														</xsl:choose>
 													</button>
 												</xsl:if>
-												<xsl:if test="$state:hide_empty!=''">
-												</xsl:if>
 											</div>
 										</div>
 										<!--<div class="settings-section">

@@ -6,6 +6,7 @@ xmlns:data="http://panax.io/data"
 xmlns:state="http://panax.io/state"
 xmlns:group="http://panax.io/state/group"
 xmlns:collapse="http://panax.io/state/collapse"
+xmlns:expand="http://panax.io/state/expand"
 xmlns:filter="http://panax.io/state/filter"
 xmlns:visible="http://panax.io/state/visible"
 xmlns:dummy="http://panax.io/dummy"
@@ -46,6 +47,7 @@ xmlns:xo="http://panax.io/xover"
 	<xsl:param name="state:hide_empty">false</xsl:param>
 
 	<xsl:key name="collapse:group" match="collapse:groups/row/@*[namespace-uri()='']" use="concat(name(),'::',.)"/>
+	<xsl:key name="expand:group" match="expand:groups/row/@*[namespace-uri()='']" use="concat(name(),'::',.)"/>
 
 	<xsl:template mode="datagrid:widget" match="*|@*">
 		<xsl:param name="x-dimensions" select="(@*[namespace-uri()='']|@*[namespace-uri()='http://panax.io/state/group'])[not(key('data:group', concat('group:',name())))]"/>
@@ -313,16 +315,46 @@ xmlns:xo="http://panax.io/xover"
 					</xsl:for-each>
 				</xsl:variable>
 				<!-- class="table-group-divider" -->
-				<xsl:variable name="collapsed" select="contains($collapse,$collapse_value)"/>
+				<xsl:variable name="collapsed">
+					<xsl:choose>
+						<xsl:when test="not(//@group:*[1])">false</xsl:when>
+						<xsl:when test="contains($collapse,$collapse_value)">true</xsl:when>
+						<xsl:when test="not($groups) and $state:collapse_all = 'true'">
+							<xsl:variable name="expand:match" select="key('expand:group', concat(local-name(current()/../..),'::',.))"/>
+							<xsl:variable name="expand">
+								<xsl:for-each select="$expand:match/parent::*[count(@*[namespace-uri()=''])=count($parent-groups|.)]">
+									<xsl:for-each select="@*[namespace-uri()='']">
+										<xsl:if test="position()=1">,</xsl:if>
+										<xsl:choose>
+											<xsl:when test="$rows/@*[name()=local-name(current())] = current()">1</xsl:when>
+											<xsl:otherwise>0</xsl:otherwise>
+										</xsl:choose>
+									</xsl:for-each>
+								</xsl:for-each>
+							</xsl:variable>
+							<xsl:variable name="expand_value">
+								<xsl:for-each select="$parent-groups|.">
+									<xsl:if test="position()=1">,</xsl:if>
+									<xsl:text>1</xsl:text>
+								</xsl:for-each>
+							</xsl:variable>
+							<xsl:choose>
+								<xsl:when test="contains($expand,$expand_value)">false</xsl:when>
+								<xsl:otherwise>true</xsl:otherwise>
+							</xsl:choose>
+						</xsl:when>
+						<xsl:otherwise>false</xsl:otherwise>
+					</xsl:choose>
+				</xsl:variable>
 				<xsl:apply-templates mode="datagrid:tbody-header" select=".">
 					<xsl:with-param name="x-dimension" select="$x-dimension"/>
 					<xsl:with-param name="rows" select="$rows"/>
 					<xsl:with-param name="groups" select="$groups"/>
 					<xsl:with-param name="parent-groups" select="$parent-groups"/>
-					<xsl:with-param name="collapsed" select="$collapsed"/>
+					<xsl:with-param name="collapsed" select="$collapsed='true'"/>
 				</xsl:apply-templates>
 				<xsl:choose>
-					<xsl:when test="$collapsed"></xsl:when>
+					<xsl:when test="$collapsed='true'"></xsl:when>
 					<xsl:when test="$groups">
 						<xsl:apply-templates mode="datagrid:tbody" select="$groups[1]">
 							<xsl:with-param name="x-dimension" select="$x-dimension"/>
@@ -331,12 +363,12 @@ xmlns:xo="http://panax.io/xover"
 							<xsl:with-param name="parent-groups" select="$parent-groups|."/>
 						</xsl:apply-templates>
 					</xsl:when>
-					<xsl:when test="not(//@group:*[1] and $state:collapse_all = 'true')">
+					<xsl:otherwise>
 						<xsl:apply-templates mode="datagrid:row" select="$rows">
 							<xsl:with-param name="x-dimension" select="$x-dimension"/>
 							<xsl:with-param name="parent-groups" select="$parent-groups|."/>
 						</xsl:apply-templates>
-					</xsl:when>
+					</xsl:otherwise>
 				</xsl:choose>
 				<xsl:apply-templates mode="datagrid:tbody-footer" select=".">
 					<xsl:with-param name="x-dimension" select="$x-dimension"/>

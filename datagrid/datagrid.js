@@ -180,19 +180,19 @@ xover.listener.on(`columnRearranged`, function () {
 	tr.store.save();
 })
 
-let collapse_or_expand = function () {
+collapse_or_expand = function (action = 'collapse') {
 	let store = this.store;
 	let scope = this.closest('td,th').scope;
 	let groups = store.select(`//@group:*`);
 	let ix = groups.findIndex(attr => attr.nodeName == `group:${scope.localName}`);
 	groups.splice(ix + 1);
 	let parent_groups = this.closest("td,th").select("preceding-sibling::*[contains(@class,'parent-group')]").map(el => el.scope).concat(scope);
-	let collapse_node = store.selectFirst(`//collapse:groups`);
-	if (!collapse_node) {
-		store.documentElement.prepend(xover.xml.createElement(`collapse:groups`));
-		collapse_node = store.selectFirst(`//collapse:groups`);
-		if (!collapse_node instanceof Element) {
-			throw (`Couln't collapse group`)
+	let group_node = store.selectFirst(`//${action}:groups`);
+	if (!group_node) {
+		store.documentElement.prepend(xover.xml.createElement(`${action}:groups`));
+		group_node = store.selectFirst(`//${action}:groups`);
+		if (!group_node instanceof Element) {
+			throw (`Couln't ${action} group`)
 		}
 	}
 	let row = xover.xml.createElement("row");
@@ -200,28 +200,35 @@ let collapse_or_expand = function () {
 		row.setAttribute(attr.nodeName, attr.value);
 	}
 	let predicate = [...row.attributes].map((attr) => `[@${attr.nodeName}="${attr.value}"]`).join('');
-	let matches = collapse_node.select(`row${predicate}`).filter(el => row.attributes.length == [...el.attributes].filter(a => !(a.namespaceURI)).length);
-	return { matches, collapse_node, row };
+	let matches = group_node.select(`row${predicate}`).filter(el => row.attributes.length == [...el.attributes].filter(a => !(a.namespaceURI)).length);
+	return { matches, group_node, row };
 }
 
 xo.listener.on('collapse', function () {
 	event.stopPropagation()
-	let { matches, collapse_node, row } = collapse_or_expand.call(this);
+	let { matches, group_node, row } = collapse_or_expand.call(this, 'collapse');
 	if (!matches.length) {
-		collapse_node.prepend(row);
+		group_node.prepend(row);
+	}
+})
+
+xo.listener.on('expand', function () {
+	event.stopPropagation()
+	let { matches } = collapse_or_expand.call(this, 'collapse');
+	for (let match of matches) {
+		match.remove()
+	}
+	if (xo.state.collapse_all) {
+		let { matches, group_node, row } = collapse_or_expand.call(this, 'expand');
+		if (!matches.length) {
+			group_node.prepend(row);
+		}
 	}
 })
 
 xo.listener.on(`change::state:collapse_all`, function () {
 	xover.stores.active.select(`//collapse:groups/row`).remove()
-})
-
-xo.listener.on('expand', function () {
-	event.stopPropagation()
-	let { matches } = collapse_or_expand.call(this);
-	for (let match of matches) {
-		match.remove()
-	}
+	xover.stores.active.select(`//expand:groups/row`).remove()
 })
 
 async function generateExcelFile(table, name) {

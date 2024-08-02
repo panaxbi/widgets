@@ -1,14 +1,15 @@
 ﻿<xsl:stylesheet version="1.0"
-xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
-xmlns="http://www.w3.org/1999/xhtml"
-xmlns:xo="http://panax.io/xover"
-xmlns:px="http://panax.io/entity"
-xmlns:site="http://panax.io/site"
-xmlns:state="http://panax.io/state"
-xmlns:shell="http://panax.io/shell"
-xmlns:navbar="http://widgets.panaxbi.com/navbar"
-xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-xmlns:widget="http://panax.io/widget"
+	xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+	xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:xo="http://panax.io/xover"
+	xmlns:px="http://panax.io/entity"
+	xmlns:site="http://panax.io/site"
+	xmlns:state="http://panax.io/state"
+	xmlns:shell="http://panax.io/shell"
+	xmlns:navbar="http://widgets.panaxbi.com/navbar"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:widget="http://panax.io/widget"
+	xmlns:combobox="http://panax.io/widget/combobox"
 >
 	<xsl:output method="xml"
 	   omit-xml-declaration="yes"
@@ -50,5 +51,12 @@ xmlns:widget="http://panax.io/widget"
 	<xsl:template mode="widget" match="model/@*">
 		<xsl:comment>debug:info</xsl:comment>
 		<xsl:apply-templates mode="widget" select="key('filters','*')"/>
+	</xsl:template>
+
+	<xsl:template mode="widget" match="*[@navbar:filter='default']" priority="1">
+		<xsl:apply-templates mode="combobox:widget" select=".">
+			<xsl:with-param name="dataset" select="row/@desc"/>
+			<xsl:with-param name="xo-slot">state:selected</xsl:with-param>
+		</xsl:apply-templates>
 	</xsl:template>
 </xsl:stylesheet>

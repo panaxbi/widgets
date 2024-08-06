@@ -155,7 +155,7 @@ xmlns:login="http://widgets.panaxbi.com/login"
 						</p>
 					</xsl:when>
 					<xsl:otherwise>
-						<h3>Visitar</h3>
+						<h3>Por favor visita</h3>
 						<xsl:variable name="url">
 							<xsl:value-of select="concat('https://', $site:location-host, $site:location-pathname)"/>
 						</xsl:variable>

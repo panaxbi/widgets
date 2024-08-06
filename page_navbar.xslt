@@ -59,4 +59,29 @@
 			<xsl:with-param name="xo-slot">state:selected</xsl:with-param>
 		</xsl:apply-templates>
 	</xsl:template>
+
+	<xsl:template mode="widget" match="*[@navbar:filter='daterange']" priority="1">
+		<xsl:variable name="default_date">
+			<xsl:choose>
+				<xsl:when test="../fechas/@state:current_date_er">
+					<xsl:value-of select="../fechas/@state:current_date_er"/>
+				</xsl:when>
+				<xsl:otherwise>
+					<xsl:for-each select="../fechas/@key">
+						<xsl:sort order="descending" select="."/>
+						<xsl:if test="position()=1">
+							<xsl:value-of select="."/>
+						</xsl:if>
+					</xsl:for-each>
+				</xsl:otherwise>
+			</xsl:choose>
+		</xsl:variable>
+		<xsl:variable name="curr_month" select="../fechas/row[@mes=$default_date]/@mes"/>
+		<xsl:variable name="start_week" select="../fechas/@state:start_week"/>
+		<xsl:variable name="end_week" select="../fechas/@state:end_week"/>
+		<div class="input-group">
+			<input class="form-control" name="fecha_inicio" type="date" pattern="yyyy-mm-dd" xo-slot="state:fecha_inicio" value="{@state:fecha_inicio}"/>
+			<input class="form-control" name="fecha_fin" type="date" pattern="yyyy-mm-dd" xo-slot="state:fecha_fin" value="{@state:fecha_fin}"/>
+		</div>
+	</xsl:template>
 </xsl:stylesheet>

@@ -30,11 +30,7 @@ xmlns:xo="http://panax.io/xover"
 	<xsl:key name="data" match="node-expected" use="concat(generate-id(),'::',name())"/>
 	<xsl:key name="data" match="/model/*[not(row)]/@state:record_count" use="'*'"/>
 
-	<xsl:key name="data:group" match="node-expected/@key" use="name(../..)"/>
-	<xsl:key name="data:group" match="node-expected" use="'*'"/>
-
 	<xsl:key name="data:group" match="*[row]/@group:*" use="'*'"/>
-	<xsl:key name="data:group" match="*[row]/@group:*" use="name()"/>
 	<xsl:key name="data:group" match="group:*/row/@desc" use="name(../..)"/>
 
 	<xsl:key name="data:group" match="/model/*[not(row)]/@state:record_count" use="'*'"/>
@@ -391,6 +387,11 @@ xmlns:xo="http://panax.io/xover"
 		<xsl:variable name="group" select="key('data:group',name())"/>
 		<xsl:variable name="rows" select="$y-dimension/@*[name()=local-name(current())]"/>
 		<!--$y-dimension/@*[name()=local-name(current())]-->
+		<!--<tr>
+			<td colspan="10">
+				<xsl:value-of select="name()"/>: <xsl:value-of select="name($y-dimension)"/> (<xsl:value-of select="count($y-dimension)"/>): <xsl:value-of select="name(key('data:group',name()))"/>: <xsl:value-of select="name($group/..)"/>
+			</td>
+		</tr>-->
 		<xsl:apply-templates mode="datagrid:tbody" select="$group[$rows]">
 			<xsl:sort select="." data-type="text"/>
 			<xsl:with-param name="x-dimension" select="$x-dimension"/>

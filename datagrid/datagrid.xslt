@@ -9,6 +9,7 @@ xmlns:collapse="http://panax.io/state/collapse"
 xmlns:expand="http://panax.io/state/expand"
 xmlns:filter="http://panax.io/state/filter"
 xmlns:visible="http://panax.io/state/visible"
+xmlns:datatype="http://panax.io/datatype"
 xmlns:dummy="http://panax.io/dummy"
 xmlns:env="http://panax.io/state/environment"
 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -37,6 +38,8 @@ xmlns:xo="http://panax.io/xover"
 
 	<xsl:key name="x-dimension" match="node-expected/@*[namespace-uri()='']" use="name(..)"/>
 	<xsl:key name="y-dimension" match="node-expected/*" use="name(..)"/>
+
+	<xsl:key name="datatype" match="*/@datatype:*" use="concat(.,':',local-name())"/>
 
 	<xsl:param name="state:groupBy">*</xsl:param>
 	<xsl:param name="state:collapse_all"></xsl:param>
@@ -542,19 +545,19 @@ xmlns:xo="http://panax.io/xover"
 		</tr>
 	</xsl:template>
 
-	<xsl:template mode="datagrid:cell-class-by-type" match="key('data_type', 'number')">
+	<xsl:template mode="datagrid:cell-class-by-type" match="key('data_type', 'number')|@*[key('datatype', concat('number:',name()))]">
 		<xsl:text/> number<xsl:text/>
 	</xsl:template>
 
-	<xsl:template mode="datagrid:cell-class-by-type" match="key('data_type', 'money')">
+	<xsl:template mode="datagrid:cell-class-by-type" match="key('data_type', 'money')|@*[key('datatype', concat('money:',name()))]">
 		<xsl:text/> money number<xsl:text/>
 	</xsl:template>
 
-	<xsl:template mode="datagrid:cell-class-by-type" match="key('data_type', 'percent')">
+	<xsl:template mode="datagrid:cell-class-by-type" match="key('data_type', 'percent')|@*[key('datatype', concat('percent:',name()))]">
 		<xsl:text/> percent number<xsl:text/>
 	</xsl:template>
 
-	<xsl:template mode="datagrid:cell-class-by-type" match="key('data_type', 'integer')">
+	<xsl:template mode="datagrid:cell-class-by-type" match="key('data_type', 'integer')|@*[key('datatype', concat('integer:',name()))]">
 		<xsl:text/> integer number<xsl:text/>
 	</xsl:template>
 
@@ -673,7 +676,7 @@ xmlns:xo="http://panax.io/xover"
 		</td>
 	</xsl:template>
 
-	<xsl:template mode="datagrid:footer-cell" match="key('data_type', 'number')">
+	<xsl:template mode="datagrid:footer-cell" match="key('data_type', 'number')|@*[key('datatype', concat('number:',name()))]">
 		<td class="number">
 			<xsl:call-template name="format">
 				<xsl:with-param name="value">
@@ -684,7 +687,7 @@ xmlns:xo="http://panax.io/xover"
 		</td>
 	</xsl:template>
 
-	<xsl:template mode="datagrid:footer-cell" match="key('data_type', 'integer')">
+	<xsl:template mode="datagrid:footer-cell" match="key('data_type', 'integer')|@*[key('datatype', concat('integer:',name()))]">
 		<td>
 			<xsl:call-template name="format">
 				<xsl:with-param name="value">
@@ -695,7 +698,7 @@ xmlns:xo="http://panax.io/xover"
 		</td>
 	</xsl:template>
 
-	<xsl:template mode="datagrid:footer-cell" match="key('data_type', 'money')">
+	<xsl:template mode="datagrid:footer-cell" match="key('data_type', 'money')|@*[key('datatype', concat('money:',name()))]">
 		<td class="money">
 			<xsl:call-template name="format">
 				<xsl:with-param name="value">
@@ -710,7 +713,7 @@ xmlns:xo="http://panax.io/xover"
 		<xsl:value-of select="count(key('facts',name()))"/>
 	</xsl:template>
 
-	<xsl:template mode="datagrid:aggregate" match="key('data_type', 'money')|key('data_type', 'integer')|key('data_type', 'number')">
+	<xsl:template mode="datagrid:aggregate" match="key('data_type', 'money')|@*[key('datatype', concat('money:',name()))]|key('data_type', 'integer')|@*[key('datatype', concat('integer:',name()))]|key('data_type', 'number')|@*[key('datatype', concat('number:',name()))]">
 		<xsl:value-of select="sum(key('facts',name()))"/>
 	</xsl:template>
 
@@ -814,7 +817,7 @@ xmlns:xo="http://panax.io/xover"
 		<th></th>
 	</xsl:template>
 
-	<xsl:template mode="datagrid:tbody-header-cell" match="key('data_type', 'money')">
+	<xsl:template mode="datagrid:tbody-header-cell" match="key('data_type', 'money')|@*[key('datatype', concat('money:',name()))]">
 		<xsl:param name="rows" select="node-expected"/>
 		<xsl:variable name="field" select="current()"/>
 		<th class="money">
@@ -824,7 +827,7 @@ xmlns:xo="http://panax.io/xover"
 		</th>
 	</xsl:template>
 
-	<xsl:template mode="datagrid:tbody-header-cell" match="key('data_type', 'number')">
+	<xsl:template mode="datagrid:tbody-header-cell" match="key('data_type', 'number')|@*[key('datatype', concat('number:',name()))]">
 		<xsl:param name="rows" select="node-expected"/>
 		<xsl:variable name="field" select="current()"/>
 		<th class="money">
@@ -835,7 +838,7 @@ xmlns:xo="http://panax.io/xover"
 		</th>
 	</xsl:template>
 
-	<xsl:template mode="datagrid:tbody-header-cell" match="key('data_type', 'integer')">
+	<xsl:template mode="datagrid:tbody-header-cell" match="key('data_type', 'integer')|@*[key('datatype', concat('integer:',name()))]">
 		<xsl:param name="rows" select="node-expected"/>
 		<xsl:variable name="field" select="current()"/>
 		<th class="money">

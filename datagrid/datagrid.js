@@ -129,6 +129,10 @@ xover.listener.on(`render?stylesheet.selectFirst("//comment()[starts-with(.,'ack
 	}
 })
 
+xover.listener.on('render', function () {
+	this.select(`//table//text()[starts-with(.,'-$')]`).forEach(text => text.parentNode.style.color = 'red')
+})
+
 xover.listener.on('ungroup', function () {
 	let scope = this.scope;
 	let group = scope.selectFirst('(.)[not(self::*)][namespace-uri()="http://panax.io/state/group"]|ancestor-or-self::*[namespace-uri()="http://panax.io/state/group"]');

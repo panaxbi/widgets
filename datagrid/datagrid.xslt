@@ -17,6 +17,7 @@ xmlns:datagrid="http://widgets.panaxbi.com/datagrid"
 xmlns:xo="http://panax.io/xover"
 >
 	<xsl:import href="../functions.xslt"/>
+	<xsl:import href="../common.xslt"/>
 	<xsl:key name="state:hidden" match="@*[namespace-uri()!='']" use="name()"/>
 	<xsl:key name="state:collapsed" match="*[@state:collapsed]" use="@key"/>
 

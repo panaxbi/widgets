@@ -139,8 +139,8 @@ xmlns:xlink="http://www.w3.org/1999/xlink"
 	</xsl:template>
 
 	<xsl:template mode="shell:nav-title" match="*">
-		<header class="hpadding0">
-			<h1 xo-source="active" xo-stylesheet="title.xslt"></h1>
+		<header>
+			<h1 xo-source="#sitemap" xo-stylesheet="title.xslt"></h1>
 		</header>
 	</xsl:template>
 

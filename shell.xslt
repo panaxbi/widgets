@@ -140,7 +140,7 @@ xmlns:xlink="http://www.w3.org/1999/xlink"
 
 	<xsl:template mode="shell:nav-title" match="*">
 		<header>
-			<h1 xo-source="#sitemap" xo-stylesheet="title.xslt"></h1>
+			<h1 xo-source="#sitemap" xo-stylesheet="widgets/title.xslt"></h1>
 		</header>
 	</xsl:template>
 

@@ -2,6 +2,7 @@
 xmlns="http://www.w3.org/1999/xhtml"
   xmlns:xo="http://panax.io/xover"
   xmlns:data="http://panax.io/data"
+  xmlns:total="http://panax.io/total"
   xmlns:state="http://panax.io/state"
   xmlns:datatype="http://panax.io/datatype"
   xmlns:env="http://panax.io/state/environment"
@@ -126,5 +127,10 @@ xmlns="http://www.w3.org/1999/xhtml"
 			<xsl:text>-</xsl:text>
 			<xsl:value-of select="substring(.,7,2)"/>
 		</xsl:if>
+	</xsl:template>
+
+	<xsl:template match="@total:*">
+		<xsl:param name="data" select="node-expected"/>
+		<xsl:value-of select="sum($data)"/>
 	</xsl:template>
 </xsl:stylesheet>

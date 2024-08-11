@@ -19,8 +19,12 @@ xmlns:px="http://panax.io/entity"
 	</xsl:template>
 
 	<xsl:template match="*">
+		<xsl:variable name="title">
+			<xsl:value-of select="key('title',substring-before(concat($site:seed,'?'),'?'))"/>
+		</xsl:variable>
+		<script>window.document.title = `Panax BI - <xsl:value-of select="$title"/>`</script>
+		<xsl:value-of select="$title"/>
 		<!--<xsl:value-of select="substring-before(translate(concat($site:seed,'?'),'_#',' '),'?')"/>-->
-		<xsl:value-of select="key('title',substring-before(concat($site:seed,'?'),'?'))"/>
 	</xsl:template>
 
 	<xsl:template match="model">

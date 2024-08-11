@@ -11,11 +11,16 @@
 			<xsl:when test="number($value) = number($value) and not($value = '')">
 				<xsl:value-of select="format-number($value,$mask)"/>
 			</xsl:when>
-			<xsl:when test="$value">
+			<xsl:when test="string(sum($value)) != 'NaN'">
 				<xsl:value-of select="format-number(sum($value),$mask)"/>
 			</xsl:when>
-			<xsl:otherwise>
+			<xsl:when test="$value_for_invalid != ''">
 				<xsl:value-of select="$value_for_invalid"/>
+			</xsl:when>
+			<xsl:otherwise>
+				<xsl:comment>NaN: <xsl:text/>
+					<xsl:value-of select="$value"/>
+				</xsl:comment>
 			</xsl:otherwise>
 		</xsl:choose>
 	</xsl:template>

@@ -251,7 +251,7 @@ async function generateExcelFile(table, name) {
 	//}, 500);
 	table = table.cloneNode(true);
 	table.querySelectorAll('del,.hidden').toArray().remove();
-	debugger
+	/*debugger*/
 	for (a of table.querySelectorAll('a')) {
 		a.replaceWith(a.createTextNode(a.selectFirst("text()[1]")))
 	}

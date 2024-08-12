@@ -36,6 +36,8 @@ xmlns:xo="http://panax.io/xover"
 	<xsl:key name="data:group" match="*[row]/@group:*" use="'*'"/>
 	<xsl:key name="data:group" match="group:*/row/@desc" use="name(../..)"/>
 
+	<xsl:key name="datagrid:caption" match="@dummy" use="generate-id(..)"/>
+
 	<xsl:key name="data:group" match="/model/*[not(row)]/@state:record_count" use="'*'"/>
 
 	<xsl:key name="x-dimension" match="node-expected/@*[namespace-uri()='']" use="name(..)"/>
@@ -252,6 +254,13 @@ xmlns:xo="http://panax.io/xover"
 				tbody, td, tfoot, th, thead, tr {
 					border-style: initial !important;
 				}
+				
+				table.datagrid > caption {
+				  caption-side: bottom;
+				  text-align: end;
+				  padding: 10px;
+				  font-weight: bold;
+				}
 			]]>
 		</style>
 		<script src="datagrid.js" fetchpriority="high"/>
@@ -276,6 +285,9 @@ xmlns:xo="http://panax.io/xover"
 					<xsl:with-param name="groups" select="$groups"/>
 				</xsl:apply-templates>
 			</tfoot>
+			<caption>
+				<xsl:apply-templates mode="datagrid:caption" select="."/>
+			</caption>
 		</table>
 	</xsl:template>
 
@@ -526,6 +538,14 @@ xmlns:xo="http://panax.io/xover"
 				<xsl:sort select="namespace-uri()" order="descending"/>
 			</xsl:apply-templates>
 		</tr>
+	</xsl:template>
+
+	<xsl:template mode="datagrid:caption" match="*">
+		<xsl:apply-templates mode="datagrid:caption" select="key('datagrid:caption', generate-id())"/>
+	</xsl:template>
+
+	<xsl:template mode="datagrid:caption" match="@*">
+		<xsl:apply-templates select="."/>
 	</xsl:template>
 
 	<xsl:template mode="datagrid:footer-row" match="*">

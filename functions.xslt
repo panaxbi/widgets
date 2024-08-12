@@ -5,20 +5,25 @@
 >
 	<xsl:template name="format">
 		<xsl:param name="value">0</xsl:param>
+		<xsl:param name="nodes" select="node-set-expected"/>
 		<xsl:param name="mask">$#,##0.00;-$#,##0.00</xsl:param>
 		<xsl:param name="value_for_invalid"></xsl:param>
 		<xsl:choose>
 			<xsl:when test="number($value) = number($value) and not($value = '')">
 				<xsl:value-of select="format-number($value,$mask)"/>
 			</xsl:when>
-			<xsl:when test="string(sum($value)) != 'NaN'">
+			<xsl:when test="$value">
+				<xsl:value-of select="format-number(sum($value),$mask)"/>
+			</xsl:when>
+			<xsl:when test="$nodes and string(sum($nodes)) != 'NaN'">
 				<xsl:value-of select="format-number(sum($value),$mask)"/>
 			</xsl:when>
 			<xsl:when test="$value_for_invalid != ''">
 				<xsl:value-of select="$value_for_invalid"/>
 			</xsl:when>
 			<xsl:otherwise>
-				<xsl:comment>NaN: <xsl:text/>
+				<xsl:comment>
+					<xsl:text/>NaN: <xsl:text/>
 					<xsl:value-of select="$value"/>
 				</xsl:comment>
 			</xsl:otherwise>

@@ -854,7 +854,7 @@ xmlns:xo="http://panax.io/xover"
 	<xsl:template mode="datagrid:tbody-header-cell" match="key('data_type', 'number')|@*[key('datatype', concat('number:',name()))]">
 		<xsl:param name="rows" select="node-expected"/>
 		<xsl:variable name="field" select="current()"/>
-		<th class="money">
+		<th class="number">
 			<xsl:call-template name="format">
 				<xsl:with-param name="value">
 					<xsl:apply-templates mode="datagrid:aggregate" select=".">
@@ -869,7 +869,7 @@ xmlns:xo="http://panax.io/xover"
 	<xsl:template mode="datagrid:tbody-header-cell" match="key('data_type', 'integer')|@*[key('datatype', concat('integer:',name()))]">
 		<xsl:param name="rows" select="node-expected"/>
 		<xsl:variable name="field" select="current()"/>
-		<th class="money">
+		<th class="number integer">
 			<xsl:call-template name="format">
 				<xsl:with-param name="value">
 					<xsl:apply-templates mode="datagrid:aggregate" select=".">

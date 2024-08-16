@@ -163,7 +163,7 @@ xo.listener.on(`beforeTransform?stylesheet.selectFirst("//comment()[starts-with(
 	}
 })
 
-xo.listener.on(`beforeTransform?stylesheet.selectFirst("//comment()[starts-with(.,'ack:imported-from')][contains(.,'datagrid.xslt')]")::model[//@datatype:*]`, function ({ document, stylesheet }) {
+xo.listener.on(`beforeTransform::model[//@datatype:*]`, function ({ document, stylesheet }) {
 	for (let attr of this.select(`//@datatype:*`)) {
 		stylesheet.documentElement.prepend(xover.xml.createNode(`<key xmlns="${xover.spaces.xsl}" name="data_type" match="${attr.parentNode.nodeName}//@${attr.localName}" use="'${attr.value}'"/>`));
 	}
@@ -172,6 +172,17 @@ xo.listener.on(`beforeTransform?stylesheet.selectFirst("//comment()[starts-with(
 xo.listener.on(`beforeTransform?stylesheet.selectFirst("//comment()[starts-with(.,'ack:imported-from')][contains(.,'datagrid.xslt')]")::model[//@hidden:*]`, function ({ document, stylesheet }) {
 	for (let attr of this.select(`//@hidden:*`)) {
 		stylesheet.documentElement.prepend(xover.xml.createNode(`<key xmlns="${xover.spaces.xsl}" name="state" match="${attr.parentNode.nodeName}/@${attr.localName}" use="'hidden'"/>`));
+	}
+})
+
+xo.listener.on(`beforeTransform::model[*/@filter:*]`, function ({ document }) {
+	for (let attr of this.select(`//@filter:*`)) {
+		let rows_to_remove = attr.parentNode.select(`row[${attr.value.split("|").map(value => `not(@${attr.localName}="${value}")`).join(" and ")}]`)
+		if (rows_to_remove.length == attr.parentNode.select(`row`).length) {
+			attr.remove()
+		} else {
+			rows_to_remove.remove()
+		}
 	}
 })
 

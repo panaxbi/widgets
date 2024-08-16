@@ -5,6 +5,7 @@ xmlns:session="http://panax.io/session"
 xmlns:data="http://panax.io/data"
 xmlns:state="http://panax.io/state"
 xmlns:group="http://panax.io/state/group"
+xmlns:hidden="http://panax.io/state/hidden"
 xmlns:collapse="http://panax.io/state/collapse"
 xmlns:expand="http://panax.io/state/expand"
 xmlns:filter="http://panax.io/state/filter"
@@ -19,12 +20,15 @@ xmlns:xo="http://panax.io/xover"
 >
 	<xsl:import href="../functions.xslt"/>
 	<xsl:import href="../common.xslt"/>
+	<xsl:key name="state" match="node-expected" use="'hidden'"/>
+	
 	<xsl:key name="state:hidden" match="@*[namespace-uri()!='']" use="name()"/>
 	<xsl:key name="state:collapsed" match="*[@state:collapsed]" use="@key"/>
 
 	<xsl:key name="state:hidden" match="@xo:*" use="."/>
 	<xsl:key name="state:hidden" match="@state:*" use="."/>
 	<xsl:key name="state:hidden" match="@xsi:*" use="."/>
+	<xsl:key name="state:hidden" match="@hidden:*" use="local-name()"/>
 
 	<xsl:key name="data:filter" match="@filter:*" use="local-name()"/>
 	<xsl:key name="data_type" match="node-expected/@*" use="'type'"/>
@@ -271,6 +275,7 @@ xmlns:xo="http://panax.io/xover"
 			<thead class="freeze">
 				<xsl:apply-templates mode="datagrid:header-row" select=".">
 					<xsl:with-param name="x-dimension" select="$x-dimensions"/>
+					<xsl:with-param name="y-dimension" select="$y-dimensions"/>
 					<xsl:with-param name="groups" select="$groups"/>
 				</xsl:apply-templates>
 			</thead>
@@ -733,6 +738,10 @@ xmlns:xo="http://panax.io/xover"
 			</xsl:call-template>
 		</td>
 	</xsl:template>
+
+	<xsl:template mode="datagrid:header-cell" match="key('state', 'hidden')" priority="2"/>
+	<xsl:template mode="datagrid:cell" match="key('state', 'hidden')" priority="2"/>
+	<xsl:template mode="datagrid:footer-cell" match="key('state', 'hidden')" priority="2"/>
 
 	<xsl:template mode="datagrid:footer-cell" match="key('data_type', 'avg')">
 		<td>

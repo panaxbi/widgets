@@ -106,7 +106,8 @@ xover.listener.on(`render?stylesheet.selectFirst("//comment()[starts-with(.,'ack
 				let scope = self.dragged_el.scope;
 				let parent_table = self.dragged_el.closest('table');
 				if (scope && parent_table && !parent_table.contains(this)) {
-					scope.remove();
+					scope.parentNode.setAttributeNS("http://panax.io/state/hidden", scope.localName, true);
+					//scope.remove();
 				}
 			}
 			el.removeEventListener('drop', el.dragtrash_drop_handler);
@@ -129,7 +130,7 @@ xover.listener.on(`render?stylesheet.selectFirst("//comment()[starts-with(.,'ack
 	}
 })
 
-xover.listener.on('render', function () {
+xover.listener.on('transform', function () {
 	this.select(`//table//text()[starts-with(.,'-$')]`).forEach(text => text.parentNode.style.color = 'red')
 })
 
@@ -159,6 +160,18 @@ xo.listener.on(`beforeTransform?stylesheet.selectFirst("//comment()[starts-with(
 			group_node.append(row);
 		}
 		document.documentElement.prepend(group_node);
+	}
+})
+
+xo.listener.on(`beforeTransform?stylesheet.selectFirst("//comment()[starts-with(.,'ack:imported-from')][contains(.,'datagrid.xslt')]")::model[//@datatype:*]`, function ({ document, stylesheet }) {
+	for (let attr of this.select(`//@datatype:*`)) {
+		stylesheet.documentElement.prepend(xover.xml.createNode(`<key xmlns="${xover.spaces.xsl}" name="data_type" match="${attr.parentNode.nodeName}//@${attr.localName}" use="'${attr.value}'"/>`));
+	}
+})
+
+xo.listener.on(`beforeTransform?stylesheet.selectFirst("//comment()[starts-with(.,'ack:imported-from')][contains(.,'datagrid.xslt')]")::model[//@hidden:*]`, function ({ document, stylesheet }) {
+	for (let attr of this.select(`//@hidden:*`)) {
+		stylesheet.documentElement.prepend(xover.xml.createNode(`<key xmlns="${xover.spaces.xsl}" name="state" match="${attr.parentNode.nodeName}/@${attr.localName}" use="'hidden'"/>`));
 	}
 })
 

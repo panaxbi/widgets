@@ -13,28 +13,6 @@ xover.listener.on('print', function () {
     //        f = iframes.length;
     //    }
     //} else {
-    window.addEventListener('beforeprint', () => {
-        const style = document.createElement('style');
-        style.id = 'dynamic-print-styles';
-        style.textContent = `
-            /* Your print-specific styles here */
-            body, 
-            .element-with-background {
-                -webkit-print-color-adjust: exact;
-                print-color-adjust: exact;
-                background-color: /* your desired color */;
-            }
-        `;
-        document.head.appendChild(style);
-    });
-
-    window.addEventListener('afterprint', () => {
-        const style = document.getElementById('dynamic-print-styles');
-        if (style) {
-            style.remove();
-        }
-    });
-
     let content = target.cloneNode(true);
         content.style.width = "100%";
         content.style.height = "100%";

@@ -138,7 +138,7 @@ xover.listener.on('transform', function () {
 		if (datediff('minute', new Date(textContent)) > 90) {
 			caption.style.color = 'red'
 		} else if (datediff('minute', new Date(textContent)) > 30) {
-			caption.style.color = 'yellow'
+			caption.style.color = 'orange'
 		} else {
 			caption.style.color = 'green'
 		}

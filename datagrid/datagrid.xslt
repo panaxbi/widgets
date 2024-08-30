@@ -265,9 +265,33 @@ xmlns:xo="http://panax.io/xover"
 				  padding: 10px;
 				  font-weight: bold;
 				}
+				
+				:root {
+					--progress-color: #3498db; /* Default progress color */
+				}
+
+				main.xo-loading::before {
+					content: "";
+					display: block;
+					width: 100%;
+					height: 2px; /* Thin line */
+					background: linear-gradient(90deg, var(--progress-color), white);
+					background-size: 200% 100%;
+					animation: loading 3s linear infinite;
+				}
+
+				@keyframes loading {
+					0% {
+						background-position: 0% 0%;
+					}
+					100% {
+						background-position: 100% 0%;
+					}
+				}
 			]]>
 		</style>
 		<script src="datagrid.js" fetchpriority="high"/>
+
 		<table class="table table-striped selection-enabled datagrid">
 			<xsl:apply-templates mode="datagrid:colgroup" select=".">
 				<xsl:with-param name="x-dimension" select="$x-dimensions"/>
@@ -291,7 +315,7 @@ xmlns:xo="http://panax.io/xover"
 				</xsl:apply-templates>
 			</tfoot>
 			<caption>
-				Vigencia de la información: <xsl:apply-templates mode="datagrid:caption" select="."/>
+				<xsl:apply-templates mode="datagrid:caption" select="."/>
 			</caption>
 		</table>
 	</xsl:template>
@@ -550,6 +574,7 @@ xmlns:xo="http://panax.io/xover"
 	</xsl:template>
 
 	<xsl:template mode="datagrid:caption" match="@*">
+		<xsl:text>Vigencia de la información: </xsl:text>
 		<xsl:apply-templates select="."/>
 	</xsl:template>
 

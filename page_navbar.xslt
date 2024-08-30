@@ -25,6 +25,7 @@
 	</xsl:template>
 
 	<xsl:template mode="headerText" match="@navbar:filter" priority="1">
+		<xsl:comment>debug:info</xsl:comment>
 		<xsl:apply-templates mode="headerText" select=".."/>
 	</xsl:template>
 

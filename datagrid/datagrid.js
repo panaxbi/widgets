@@ -131,7 +131,18 @@ xover.listener.on(`render?stylesheet.selectFirst("//comment()[starts-with(.,'ack
 })
 
 xover.listener.on('transform', function () {
-	this.select(`//table//text()[starts-with(.,'-$')]`).forEach(text => text.parentNode.style.color = 'red')
+	this.select(`//table//text()[starts-with(.,'-$')]`).forEach(text => text.parentNode.style.color = 'red');
+	for (let caption of this.querySelectorAll(`.datagrid caption`)) {
+		let textContent = ((caption.textContent || '').match(/\d{4}-\d{2}-\d{2}T?\d{2}:\d{2}:\d{2}.\d+/g) || []).pop(); 
+		if (!isValidDate(textContent)) continue;
+		if (datediff('minute', new Date(textContent)) > 90) {
+			caption.style.color = 'red'
+		} else if (datediff('minute', new Date(textContent)) > 30) {
+			caption.style.color = 'yellow'
+		} else {
+			caption.style.color = 'green'
+		}
+	}
 })
 
 xover.listener.on('ungroup', function () {

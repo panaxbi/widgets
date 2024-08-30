@@ -21,7 +21,7 @@ xmlns:xo="http://panax.io/xover"
 	<xsl:import href="../functions.xslt"/>
 	<xsl:import href="../common.xslt"/>
 	<xsl:key name="state" match="node-expected" use="'hidden'"/>
-	
+
 	<xsl:key name="state:hidden" match="@*[namespace-uri()!='']" use="name()"/>
 	<xsl:key name="state:collapsed" match="*[@state:collapsed]" use="@key"/>
 
@@ -260,8 +260,8 @@ xmlns:xo="http://panax.io/xover"
 				}
 				
 				table.datagrid > caption {
-				  caption-side: bottom;
-				  text-align: end;
+				  caption-side: top;
+				  text-align: start;
 				  padding: 10px;
 				  font-weight: bold;
 				}
@@ -291,7 +291,7 @@ xmlns:xo="http://panax.io/xover"
 				</xsl:apply-templates>
 			</tfoot>
 			<caption>
-				<xsl:apply-templates mode="datagrid:caption" select="."/>
+				Vigencia de la información: <xsl:apply-templates mode="datagrid:caption" select="."/>
 			</caption>
 		</table>
 	</xsl:template>

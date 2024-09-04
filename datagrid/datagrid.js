@@ -52,7 +52,7 @@ xover.listener.on(`render?stylesheet.selectFirst("//comment()[starts-with(.,'ack
 	document.querySelectorAll('[draggable="true"]').forEach((th, index) => {
 		th.dragstart_handler = th.dragstart_handler || function (e) {
 			self.dragged_el = this;
-			console.log('dragstart', self.dragged_el)
+			//console.log('dragstart', self.dragged_el)
 			draggedColIndex = this.cellIndex;
 			createArrow();
 		}
@@ -328,3 +328,8 @@ async function generateExcelFile(table, name) {
 	progress.remove();
 	if (this.Interval) window.clearInterval(this.Interval);
 }
+
+xover.listener.on('click::.datagrid .sortable', function () {
+	sortRows.call(this, this.closest('td,th'))
+})
+

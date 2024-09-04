@@ -326,17 +326,7 @@ xmlns:xo="http://panax.io/xover"
 		<xsl:param name="y-dimension" select="node-expected"/>
 		<xsl:param name="groups" select="ancestor-or-self::*[1]/@group:*"/>
 		<xsl:param name="parent-groups" select="dummy:node-expected"/>
-
-		<xsl:variable name="key">
-			<xsl:choose>
-				<xsl:when test="self::*">*</xsl:when>
-				<xsl:otherwise>
-					<xsl:value-of select="."/>
-				</xsl:otherwise>
-			</xsl:choose>
-		</xsl:variable>
-		<xsl:variable name="current" select="current()"/>
-		<xsl:variable name="rows" select="$y-dimension[self::*]|self::*[not(*)]/@state:record_count|$y-dimension[not(self::*)][.=$current]/.."/>
+		<xsl:param name="rows" select="$y-dimension[self::*]|self::*[not(*)]/@state:record_count|$y-dimension[not(self::*)][.=current()]/.."/>
 		<xsl:if test="self::* or not(self::*) and $rows">
 			<tbody>
 				<xsl:variable name="collapse:match" select="key('collapse:group', concat(local-name(current()/../..),'::',.))"/>
@@ -502,7 +492,7 @@ xmlns:xo="http://panax.io/xover"
 			</th>
 			<xsl:apply-templates mode="datagrid:cell" select="$x-dimension">
 				<xsl:sort select="namespace-uri()" order="descending"/>
-				<xsl:with-param name="row" select="."/>
+				<xsl:with-param name="row" select="ancestor-or-self::row"/>
 			</xsl:apply-templates>
 		</tr>
 	</xsl:template>
@@ -617,15 +607,7 @@ xmlns:xo="http://panax.io/xover"
 			<xsl:apply-templates mode="datagrid:cell-class-by-type" select="."/>
 		</xsl:variable>
 		<td xo-scope="inherit" xo-slot="{local-name()}" class="text-nowrap {$text-filter} {$classes} cell domain-{local-name()}">
-			<xsl:choose>
-				<xsl:when test="namespace-uri()='http://panax.io/state/group'">
-					<!--<xsl:attribute name="style">max-width:5px; overflow: hidden;</xsl:attribute>-->
-					<xsl:apply-templates mode="datagrid:cell-content" select="$cell"/>
-				</xsl:when>
-				<xsl:otherwise>
-					<xsl:apply-templates mode="datagrid:cell-content" select="$cell"/>
-				</xsl:otherwise>
-			</xsl:choose>
+			<xsl:apply-templates mode="datagrid:cell-content" select="$cell"/>
 		</td>
 	</xsl:template>
 
@@ -719,6 +701,20 @@ xmlns:xo="http://panax.io/xover"
 			<xsl:comment>
 				<xsl:value-of select="name()"/>
 			</xsl:comment>
+		</td>
+	</xsl:template>
+
+	<xsl:template mode="datagrid:footer-cell" match="@*[key('total', name())]">
+		<xsl:param name="rows" select="node-expected"/>
+		<td>
+			<xsl:call-template name="format">
+				<xsl:with-param name="value">
+					<xsl:apply-templates mode="datagrid:aggregate" select=".">
+						<xsl:with-param name="data" select="$rows/@*[name()=local-name(current())]"/>
+					</xsl:apply-templates>
+				</xsl:with-param>
+				<xsl:with-param name="mask">###,##0;-###,##0</xsl:with-param>
+			</xsl:call-template>
 		</td>
 	</xsl:template>
 

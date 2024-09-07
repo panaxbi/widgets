@@ -34,7 +34,6 @@ xover.listener.on('print', async function () {
         printWindow.document.body.appendChild(content)
         printWindow.document.body.style.padding = '20px';
 
-        await xover.delay(200);
         // Close the document to ensure all content is written
          printWindow.document.close();
 
@@ -43,6 +42,8 @@ xover.listener.on('print', async function () {
         printWindow.onload = function () {
             printWindow.focus(); // Required for some browsers
             printWindow.print();
-            printWindow.close();
+            setTimeout(function () {
+                printWindow.close(); // Delay closing the window
+            }, 1000); // Allow some time for print dialog to show
         };
 })

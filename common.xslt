@@ -132,5 +132,5 @@ xmlns="http://www.w3.org/1999/xhtml"
 	<xsl:template match="@total:*">
 		<xsl:param name="data" select="node-expected"/>
 		<xsl:value-of select="sum($data)"/>
-	</xsl:template>
+	</xsl:template>	
 </xsl:stylesheet>

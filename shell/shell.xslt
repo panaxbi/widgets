@@ -16,8 +16,9 @@ xmlns:xlink="http://www.w3.org/1999/xlink"
 	</xsl:template>
 
 	<xsl:template match="*|@*" mode="shell:widget">
-		<div id="shell" class="wrapper sitemap_collapsed">
-			<style><![CDATA[
+		<div id="shell" class="wrapper sitemap_collapsed" xo-silence="@aria-* @data-bs-*">
+			<style>
+				<![CDATA[
 			@media print {
 				/* Apply to all elements or specific classes/elements */
 				body, 
@@ -25,29 +26,21 @@ xmlns:xlink="http://www.w3.org/1999/xlink"
 					-webkit-print-color-adjust: exact; /* For WebKit-based browsers */
 					print-color-adjust: exact;         /* Standard property */
 				}
-			}]]>
+			}
+			
+			body:has(:scope > iframe) {
+				height: 100vh;
+			}
+
+			iframe {
+				display: block;
+				border: none;
+				min-height: 100%;
+				max-height: 100%;
+				width: 100%;
+			}
+			]]>
 			</style>
-			<script>
-				<![CDATA[
-				function toggleSidebar(show) {
-					let sidebar = document.querySelector('.sidebar');
-					if (!sidebar) return
-					let width = Number.parseInt(sidebar.style.width);
-					let shown = !!width || show === false;
-					sidebar.closest('.wrapper').classList.toggle('sitemap_collapsed', shown)
-					sidebar.closest('.wrapper').classList.toggle('sitemap-collapsed', shown)
-					sidebar.closest('.wrapper').classList.toggle('sitemap-expanded', !shown)
-					sidebar.style.width = width || show === false ? 0 : '100%';
-				}
-				
-				xover.listener.on('keyup', async function (event) {
-					if (event.keyCode == 27) {
-						toggleSidebar(false);
-						event.stopPropagation();
-					}
-				})
-				]]>
-			</script>
 			<style>
 				<![CDATA[
 				body {

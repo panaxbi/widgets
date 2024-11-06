@@ -20,7 +20,6 @@ xmlns:xo="http://panax.io/xover"
 >
 	<xsl:import href="../functions.xslt"/>
 	<xsl:import href="../common.xslt"/>
-	<xsl:import href="../utilities.xslt"/>
 	<xsl:key name="state" match="node-expected" use="'hidden'"/>
 
 	<xsl:key name="state:hidden" match="@*[namespace-uri()!='']" use="name()"/>
@@ -423,6 +422,7 @@ xmlns:xo="http://panax.io/xover"
 
 		<xsl:comment>debug:info</xsl:comment>
 		<xsl:variable name="group" select="key('data:group',name())"/>
+		<!--<xsl:variable name="rows" select="key('datagrid:record',$y-dimension/@xo:id)/@*[name()=local-name(current())]"/>-->
 		<xsl:variable name="rows" select="$y-dimension/@*[name()=local-name(current())]"/>
 		<xsl:apply-templates mode="datagrid:tbody" select="$group[$rows]">
 			<xsl:sort select="." data-type="text"/>
@@ -478,8 +478,11 @@ xmlns:xo="http://panax.io/xover"
 		<col width="280"/>
 	</xsl:template>
 
+	<xsl:key name="datagrid:record" match="row" use="@xo:id"/>
+
 	<xsl:template mode="datagrid:row" match="*">
-		<xsl:param name="x-dimension" select="@*[not(key('state:hidden',name()))]"/>
+		<xsl:param name="row" select="key('datagrid:record',@xo:id)"/>
+		<xsl:param name="x-dimension" select="$row/@*[not(key('state:hidden',name()))]"/>
 		<xsl:param name="parent-groups" select="node-expected"/>
 		<tr>
 			<th scope="row">
@@ -487,7 +490,7 @@ xmlns:xo="http://panax.io/xover"
 			</th>
 			<xsl:apply-templates mode="datagrid:cell" select="$x-dimension">
 				<xsl:sort select="namespace-uri()" order="descending"/>
-				<xsl:with-param name="row" select="ancestor-or-self::row"/>
+				<xsl:with-param name="row" select="$row"/>
 			</xsl:apply-templates>
 		</tr>
 	</xsl:template>
@@ -503,8 +506,6 @@ xmlns:xo="http://panax.io/xover"
 			<xsl:with-param name="parent-groups" select="$parent-groups"/>
 		</xsl:apply-templates>
 	</xsl:template>
-
-	<xsl:template mode="datagrid:row" match="row[key('state:collapsed', @Account)]"/>
 
 	<xsl:template mode="datagrid:header-row" match="*">
 		<xsl:param name="x-dimension" select="node-expected"/>

@@ -27,12 +27,12 @@ xmlns:login="http://widgets.panaxbi.com/login"
 	<xsl:param name="meta:google-signin-client_id"/>
 
 	<xsl:template match="/" priority="-1">
-		<xsl:apply-templates mode="login:widget"/>		
+		<xsl:apply-templates mode="login:widget"/>
 	</xsl:template>
-	
+
 	<xsl:template match="*" mode="login:widget">
 		<section class="login" xo:use-attribute-sets="login:widget">
-			<xsl:if test="$js:secure='true'">
+			<xsl:if test="$meta:google-signin-client_id!='' and $js:secure='true'">
 				<link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet" type="text/css"/>
 				<script src="https://accounts.google.com/gsi/client" async="" defer=""></script>
 				<!--<script src="https://apis.google.com/js/platform.js" async="" defer=""></script>-->
@@ -107,13 +107,24 @@ xmlns:login="http://widgets.panaxbi.com/login"
 					<xsl:attribute name="onsubmit"></xsl:attribute>
 					<xsl:attribute name="action">#</xsl:attribute>
 				</xsl:if>
-				<img id="logo" src="./assets/logo.png" alt="" class="mx-auto" style="view-transition-name: transition;"/>
+				<img id="logo" src="./assets/logo.png" alt="" class="mx-auto" style="view-transition-name: logo;"/>
 				<h1 class="h3 mb-3 font-weight-normal mx-auto">Bienvenido</h1>
 				<xsl:choose>
-					<xsl:when test="$js:secure='true'">
+					<xsl:when test="$meta:google-signin-client_id!='' and $js:secure!='true'">
+						<h3>Por favor visita</h3>
+						<xsl:variable name="url">
+							<xsl:value-of select="concat('https://', $site:location-host, $site:location-pathname)"/>
+						</xsl:variable>
+						<h4>
+							<a href="{$url}">
+								<xsl:value-of select="$url"/>
+							</a>
+						</h4>
+					</xsl:when>
+					<xsl:otherwise>
 						<!--<label for="username" class="sr-only">Username</label>-->
-						<input type="email" id="username" class="form-control" placeholder="Username" autocomplete="username" required="" autofocus="" oninvalid="this.setCustomValidity('Escriba su usuario')" oninput="this.setCustomValidity('')" value="{$session:user_login}" xo-slot="username">
-							<xsl:if test="not($session:debug='true')">
+						<input type="text" id="username" class="form-control" placeholder="Username" autocomplete="username" required="" autofocus="" oninvalid="this.setCustomValidity('Escriba su usuario')" oninput="this.setCustomValidity('')" value="{$session:user_login}" xo-slot="username">
+							<xsl:if test="$meta:google-signin-client_id!='' and not($session:debug='true')">
 								<xsl:attribute name="disabled"/>
 							</xsl:if>
 							<xsl:if test="@username">
@@ -122,13 +133,15 @@ xmlns:login="http://widgets.panaxbi.com/login"
 								</xsl:attribute>
 							</xsl:if>
 						</input>
-						<!--<label for="password" class="sr-only">Password</label>
-						<input type="password" id="password" class="form-control" placeholder="Password" autocomplete="current-password" required="" oninvalid="this.setCustomValidity('Escriba su contraseña')" oninput="this.setCustomValidity('')">
-							<xsl:if test="$session:status='authorizing' or $session:status='authorized'">
-								<xsl:attribute name="style">visibility:hidden;</xsl:attribute>
-								<xsl:attribute name="readonly"></xsl:attribute>
-							</xsl:if>
-						</input>-->
+						<xsl:if test="$meta:google-signin-client_id=''">
+							<label for="password" class="sr-only">Password</label>
+							<input type="password" id="password" class="form-control" placeholder="Password" autocomplete="current-password" required="" oninvalid="this.setCustomValidity('Escriba su contraseña')" oninput="this.setCustomValidity('')">
+								<xsl:if test="$session:status='authorizing' or $session:status='authorized'">
+									<xsl:attribute name="style">visibility:hidden;</xsl:attribute>
+									<xsl:attribute name="readonly"></xsl:attribute>
+								</xsl:if>
+							</input>
+						</xsl:if>
 						<xsl:apply-templates mode="login:button" select="."/>
 						<div class="container" style="height: 60px;">
 							<xsl:if test="$meta:google-signin-client_id!='' and $js:secure='true' and $session:status!='authorizing'">
@@ -153,17 +166,6 @@ xmlns:login="http://widgets.panaxbi.com/login"
 						<p class="mt-5 mb-3 text-muted mx-auto">
 							©Panax 2022 - <xsl:value-of select="$js:year"/>
 						</p>
-					</xsl:when>
-					<xsl:otherwise>
-						<h3>Por favor visita</h3>
-						<xsl:variable name="url">
-							<xsl:value-of select="concat('https://', $site:location-host, $site:location-pathname)"/>
-						</xsl:variable>
-						<h4>
-							<a href="{$url}">
-								<xsl:value-of select="$url"/>
-							</a>
-						</h4>
 					</xsl:otherwise>
 				</xsl:choose>
 			</form>

@@ -197,6 +197,16 @@ xo.listener.on(`beforeTransform::model[*/@filter:*]`, function ({ document }) {
 	}
 })
 
+xo.listener.on(`beforeTransform::model[*/@group:*]`, function ({ document }) {
+	for (let group of this.select(`//@group:*`)) {
+		for (let attr of group.parentNode.select(`.//row[*[not(@${group.localName})]]/@${group.localName}`)) {
+			for (let row of attr.select(`..//*[not(@${group.localName})]`)) {
+				row.setAttribute(attr.localName, attr.value)
+			}
+		}
+	}
+})
+
 xover.listener.on(`columnRearranged`, function () {
 	let tr = this.closest('tr');
 	let node = tr.scope;

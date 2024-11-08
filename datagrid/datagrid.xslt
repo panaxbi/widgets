@@ -17,18 +17,19 @@ xmlns:env="http://panax.io/state/environment"
 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 xmlns:datagrid="http://widgets.panaxbi.com/datagrid"
 xmlns:xo="http://panax.io/xover"
+xmlns:debug="http://panax.io/debug"
 >
 	<xsl:import href="../functions.xslt"/>
 	<xsl:import href="../common.xslt"/>
 	<xsl:key name="state" match="node-expected" use="'hidden'"/>
 
-	<xsl:key name="state:hidden" match="@*[namespace-uri()!='']" use="name()"/>
+	<xsl:key name="state:hidden" match="@*[namespace-uri()!='' and namespace-uri()!='http://panax.io/state/group']" use="name()"/>
 	<xsl:key name="state:collapsed" match="*[@state:collapsed]" use="@key"/>
 
 	<xsl:key name="state:hidden" match="@xo:*" use="."/>
 	<xsl:key name="state:hidden" match="@state:*" use="."/>
 	<xsl:key name="state:hidden" match="@xsi:*" use="."/>
-	<xsl:key name="state:hidden" match="@hidden:*" use="local-name()"/>
+	<xsl:key name="state:hidden" match="@hidden:*[not(.='false')]" use="local-name()"/>
 
 	<xsl:key name="data:filter" match="@filter:*" use="local-name()"/>
 	<xsl:key name="data_type" match="node-expected/@*" use="'type'"/>
@@ -57,7 +58,7 @@ xmlns:xo="http://panax.io/xover"
 	<xsl:key name="expand:group" match="expand:groups/row/@*[namespace-uri()='']" use="concat(name(),'::',.)"/>
 
 	<xsl:template mode="datagrid:widget" match="*|@*">
-		<xsl:param name="x-dimensions" select="(@*[namespace-uri()='']|@*[namespace-uri()='http://panax.io/state/group'])[not(key('data:group', concat('group:',name())))]"/>
+		<xsl:param name="x-dimensions" select="(@*[namespace-uri()='']|@*[namespace-uri()='http://panax.io/state/group'])[not(key('state:hidden',name()))][not(key('data:group', concat('group:',name())))]"/>
 		<xsl:param name="y-dimensions" select="key('y-dimension', name(ancestor-or-self::*[1]))"/>
 		<xsl:param name="groups" select="key('data:group',$state:groupBy)"/>
 		<xsl:variable name="data" select="key('data',node)"/>
@@ -546,6 +547,43 @@ xmlns:xo="http://panax.io/xover"
 								</a>
 							</li>
 						</xsl:if>
+						<li>
+							<hr class="dropdown-divider"/>
+						</li>
+						<div class="dropdown-item" style="height: 350px; overflow-y: scroll;">
+							<ul class="list-group">
+								<xsl:for-each select="$x-dimension/../@*[namespace-uri()='']">
+									<li class="list-group-item" onclick="event.preventDefault(); return false;" draggable="true">
+										<xsl:choose>
+											<xsl:when test="key('data:group', concat('group:',name()))">
+												<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-stack ms-2 button" viewBox="0 0 16 16" onclick="dispatch('ungroup')" xo-slot="group:cte" xo-scope="ventas_b8fed1ac_71f3_4320_89b2_3af43d6374a7">
+													<path d="m14.12 10.163 1.715.858c.22.11.22.424 0 .534L8.267 15.34a.6.6 0 0 1-.534 0L.165 11.555a.299.299 0 0 1 0-.534l1.716-.858 5.317 2.659c.505.252 1.1.252 1.604 0l5.317-2.66zM7.733.063a.6.6 0 0 1 .534 0l7.568 3.784a.3.3 0 0 1 0 .535L8.267 8.165a.6.6 0 0 1-.534 0L.165 4.382a.299.299 0 0 1 0-.535z"></path>
+													<path d="m14.12 6.576 1.715.858c.22.11.22.424 0 .534l-7.568 3.784a.6.6 0 0 1-.534 0L.165 7.968a.299.299 0 0 1 0-.534l1.716-.858 5.317 2.659c.505.252 1.1.252 1.604 0z"></path>
+												</svg>
+											</xsl:when>
+											<xsl:otherwise>
+												<input class="form-check-input me-1" type="checkbox" value="" id="{generate-id()}" xo-slot="hidden:{name()}">
+													<xsl:if test="$x-dimension[name()=name(current())] or key('data:group', concat('group:',name()))">
+														<xsl:attribute name="checked"/>
+													</xsl:if>
+													<xsl:choose>
+														<xsl:when test="key('data:group', concat('group:',name()))">
+															<xsl:attribute name="disabled"/>
+														</xsl:when>
+														<xsl:otherwise>
+															<xsl:attribute name="onclick">scope.toggle('false','true')</xsl:attribute>
+														</xsl:otherwise>
+													</xsl:choose>
+												</input>
+											</xsl:otherwise>
+										</xsl:choose>
+										<label class="form-check-label" for="{generate-id()}">
+											<xsl:apply-templates mode="headerText" select="."/>
+										</label>
+									</li>
+								</xsl:for-each>
+							</ul>
+						</div>
 					</ul>
 				</div>
 			</th>
@@ -756,9 +794,9 @@ xmlns:xo="http://panax.io/xover"
 		</td>
 	</xsl:template>
 
-	<xsl:template mode="datagrid:header-cell" match="key('state', 'hidden')" priority="2"/>
+	<!--<xsl:template mode="datagrid:header-cell" match="key('state', 'hidden')" priority="2"/>
 	<xsl:template mode="datagrid:cell" match="key('state', 'hidden')" priority="2"/>
-	<xsl:template mode="datagrid:footer-cell" match="key('state', 'hidden')" priority="2"/>
+	<xsl:template mode="datagrid:footer-cell" match="key('state', 'hidden')" priority="2"/>-->
 
 	<xsl:template mode="datagrid:footer-cell" match="key('data_type', 'avg')">
 		<td>
@@ -867,7 +905,10 @@ xmlns:xo="http://panax.io/xover"
 					<xsl:apply-templates select="../@desc"/>
 				</strong>
 			</th> TODO: Implementar esto cuando se quiean ocultar las columnas que están agrupando -->
-			<xsl:apply-templates mode="datagrid:tbody-header-cell" select="$x-dimension[namespace-uri()='']">
+			<!--<td>
+				here: <xsl:apply-templates mode="debug:name" select="($x-dimension[namespace-uri()=''][not(key('data:group',concat('group:',name())))])"/>
+			</td>-->
+			<xsl:apply-templates mode="datagrid:tbody-header-cell" select="$x-dimension[namespace-uri()=''][not(key('data:group',concat('group:',name())))]">
 				<xsl:with-param name="rows" select="$rows"/>
 			</xsl:apply-templates>
 		</tr>

@@ -84,6 +84,14 @@ xmlns:xlink="http://www.w3.org/1999/xlink"
 					color: silver; 
 					cursor:wait;
 				}
+				
+				#shell > * {
+					z-index: 1020;
+				}
+				
+				#shell > nav, #shell .page-menu {
+					z-index: 1021;
+				}
 				]]>
 			</style>
 			<xsl:apply-templates mode="shell:nav-title" select="."/>

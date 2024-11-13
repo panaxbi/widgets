@@ -1,0 +1,24 @@
+﻿<template title="" type="PieChart" options="">
+    <script>
+        constructor.extend({
+            init() {
+                if (!this.initialChildNodes.length) return;
+                google.charts.load("current", { packages: ["corechart"] });
+                google.charts.setOnLoadCallback(() => {
+                    let columns = ['Variety', 'Qty (UOM)'].concat([this.initialChildNodes.filter(el => el.attributes)[0]].map(el => [...el.attributes].map(attr => attr.name)).flat().slice(1));
+                    var data = google.visualization.arrayToDataTable([columns, ...this.initialChildNodes.filter(el => el.attributes).map(el => [el.text, ...[...el.attributes].map(attr => +attr.value)])]);
+
+                    var options = {
+                        title: this.title,
+                        is3D: true,
+                        ...eval(`(${this.getAttribute("options") || "{}"})`)
+                    };
+
+                    var chart = new google.visualization[this.getAttribute("type")](this.parts.chart);
+                    chart.draw(data, options);
+                });
+            }
+        })
+    </script>
+    <div part="chart" style="width: 900px; height: 500px;"></div>
+</template>

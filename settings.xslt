@@ -88,7 +88,7 @@ xmlns:state="http://panax.io/state"
         height: 100%;
         position: fixed;
         width: 240px;
-        z-index: 1010;
+        z-index: 1022;
         top: 0;
         bottom: 0;
         right: -240px;

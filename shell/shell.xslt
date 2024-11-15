@@ -92,6 +92,10 @@ xmlns:xlink="http://www.w3.org/1999/xlink"
 				#shell > nav, #shell .page-menu {
 					z-index: 1021;
 				}
+				
+				#shell > main {
+					z-index: 1019;
+				}
 				]]>
 			</style>
 			<xsl:apply-templates mode="shell:nav-title" select="."/>

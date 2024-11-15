@@ -89,7 +89,7 @@ xmlns:xlink="http://www.w3.org/1999/xlink"
 					z-index: 1020;
 				}
 				
-				#shell > nav, #shell .page-menu {
+				#shell > nav, #settings {
 					z-index: 1021;
 				}
 				

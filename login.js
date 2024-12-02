@@ -6,8 +6,9 @@ function onGoogleLogin(response) {
     xover.session.id_token = response.credential;
     xover.session.login(xover.session.user_login, response.credential).then(() => {
         if (xo.site.seed == '#login') { window.location = '#' } else { xover.stores.seed.render() }
-    }).catch(() => {
+    }).catch((e) => {
         xover.session.id_token = undefined;
+        return Promise.reject(e);
     })
 }
 xover.listener.on('beforeRender::#login', function () {

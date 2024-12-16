@@ -238,7 +238,7 @@
         })
 
         xo.listener.on('hide.bs.dropdown', function () {
-            let host = this.host;
+            let host = this.host || {};
             if (host.constructor != constructor) return;
             let input = host.parts.search;
             input.value = input.value || input.placeholder || '';
@@ -248,7 +248,7 @@
         })
 
         xo.listener.on('shown.bs.dropdown', function () {
-            let host = this.host;
+            let host = this.host || {};
             if (host.constructor != constructor) return;
             let input = host.parts.search;
             let select = host.parts.select;

@@ -37,7 +37,7 @@
 		<xsl:apply-templates mode="headerText" select=".."/>
 	</xsl:template>
 
-	<xsl:template mode="headerText" match="*[@navbar:position]/@navbar:filter" priority="1">
+	<xsl:template mode="headerText" match="*[key('filters',@navbar:position)[2]]/@navbar:filter" priority="1">
 		<xsl:comment>debug:info</xsl:comment>
 		<xsl:for-each select="key('filter',$state:filterBy)[1]">
 			<select style="font-weight: bold; padding: 1px 5px;" class="form-select" onchange="xo.state.filterBy=this.value">

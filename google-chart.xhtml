@@ -5,17 +5,35 @@
                 if (!this.initialChildNodes.length) return;
                 google.charts.load("current", { packages: ["corechart"] });
                 google.charts.setOnLoadCallback(() => {
-                    let columns = ['Variety', 'Qty (UOM)'].concat([this.initialChildNodes.filter(el => el.attributes)[0]].map(el => [...el.attributes].map(attr => attr.name)).flat().slice(1));
-                    var data = google.visualization.arrayToDataTable([columns, ...this.initialChildNodes.filter(el => el.attributes).map(el => [el.text, ...[...el.attributes].map(attr => +attr.value)])]);
-
-                    var options = {
+                    const type = this.getAttribute("type");
+                    const columns = ['Variety', 'Qty (UOM)'].concat([this.initialChildNodes.filter(el => el.attributes)[0]].map(el => [...el.attributes].filter(attr => attr.localName.indexOf("xo-")!=0).map(attr => attr.name)).flat().slice(1));
+                    let data = this.initialChildNodes.filter(el => el.attributes).map(el => [el.text, +el.value,
+                    ...columns.slice(2).map(col => {
+                        let value = +el.attributes[col];
+                        return isNaN(value) ? 0 : value;
+                    })]);
+                    const options = {
                         title: this.title,
                         is3D: true,
                         ...eval(`(${this.getAttribute("options") || "{}"})`)
                     };
+                    if (type == 'ComboChart') {
+                        // Find max values
+                        const maxQuantity = Math.max(...data.map(row => row[1]));
+                        const maxAmount = Math.max(...data.map(row => row[2]));
 
-                    var chart = new google.visualization[this.getAttribute("type")](this.parts.chart);
-                    chart.draw(data, options);
+                        // Calculate scaling factor
+                        const scalingFactor = maxAmount / maxQuantity;
+
+                        // Scale quantities
+                        const scaledData = data.map(row => [row[0], row[1] * scalingFactor, row[1], row[2]]);
+                        data = scaledData;
+                        columns.splice(2, 0, { role: "annotation" })
+                        options.series[0] = { type: 'bars', annotations: { alwaysOutside: true }, tooltip: { trigger: 'none' } }
+                    }
+                    const data_table = google.visualization.arrayToDataTable([columns, ...data])
+                    const chart = new google.visualization[type](this.parts.chart);
+                    chart.draw(data_table, options);
                 });
             }
         })

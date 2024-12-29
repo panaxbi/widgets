@@ -1,0 +1,41 @@
+﻿<template shadowrootmode="open" min="" max="" adoptcss="*bootstrap*">
+    <script>
+        let formatValue = (input) => (`${input}`.replace(/(\d{4})-?(\d{2})-?(\d{2})/g, '$1$2$3') || "");
+        constructor.extend({
+            init(content) {
+                for (let part of content.querySelectorAll("[type=date]")) {
+                    part.addEventListener("change", this.selectValue);
+                }
+                this.value = this.attributes.value;
+            },
+
+            selectValue() {
+                let lowerRange = parts.lowerRange.value || '';
+                let upperRange = parts.upperRange.value || '';
+                if (lowerRange > upperRange) {
+                    if (this === parts.upperRange) {
+                        lowerRange = ''
+                    } else if (this === parts.lowerRange) {
+                        upperRange = ''
+                    }
+                } else { }
+                self.value = `${lowerRange.replaceAll('-', '')}-${upperRange.replaceAll('-', '')}`;
+            },
+
+            value: {
+                set(input) {
+                    let [lowerRange = '', upperRange = ''] = formatValue(input).split(/[-~]/);
+                    parts.lowerRange.value = lowerRange.replace(/(\d{4})-?(\d{2})-?(\d{2})/, "$1-$2-$3");
+                    parts.upperRange.value = upperRange.replace(/(\d{4})-?(\d{2})-?(\d{2})/, "$1-$2-$3");
+                    let value = `${lowerRange.replaceAll('-', '')}-${upperRange.replaceAll('-', '')}`;
+                    if (lowerRange && upperRange && value != formatValue(this.value)) this.setAttribute('value', value);
+                    return value;
+                }
+            },
+        })
+    </script>
+    <div class="{{@class}}">
+        <input class="form-control" type="date" pattern="yyyy-mm-dd" value="" part="lowerRange" min="{{@min}}" max="{{@max}}" />
+        <input class="form-control" type="date" pattern="yyyy-mm-dd" value="" part="upperRange" min="{{@min}}" max="{{@max}}" />
+    </div>
+</template>

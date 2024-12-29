@@ -61,9 +61,8 @@
                 if (!(this.parts.search && this.parts.select)) return;
                 this.value = [...this.parts.select.selectedOptions].map(option => option.value).join(", ") || this.value || "";
                 this.text = [...this.parts.select.selectedOptions].map(option => option.text).join(", ") || this.text || "";
-            },
-
-            selectOption() {
+            }
+            , selectOption() {
                 let dropdown = this.parts.body;
                 let combo = this.parts.select;
                 combo.classList.remove("filtered");
@@ -85,6 +84,12 @@
                     }
                 } catch (e) { }
             }
+            , value: {
+                set(input) {
+                    //this.parts.select.value = input;
+                    this.setAttribute("value", input)
+                }
+            } 
         })
 
         xo.components.combobox = xo.components.combobox || {};
@@ -157,10 +162,7 @@
         xo.listener.on('focusin::.combobox [data-bs-toggle]:not(.show) [type=search]', xo.components.combobox.filter);
 
         xo.components.combobox.change = function () {
-            let selected_option = this.options[this.selectedIndex];
-            //let value = (selected_option || document.createElement('p')).getAttributeNode("value");
-            //this.scope.set(value instanceof Attr ? value.value : selected_option.scope || select_option.value);
-            this.host.selectOption(selected_option)
+            this.host.selectOption()
         }
 
         xo.components.combobox.keyup = function (event) {

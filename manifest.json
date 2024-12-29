@@ -1,0 +1,7 @@
+{
+  "sources": {
+    "px-combobox": "combobox.xhtml",
+    "px-daterange": "daterange.xhtml",
+    "google-chart": "google-chart.xhtml"
+  }
+}

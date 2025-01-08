@@ -1,13 +1,14 @@
-﻿<template title="" type="PieChart" options="">
+﻿<template shadowrootmode="open" title="" type="PieChart" options="">
     <script>
         constructor.extend({
             init() {
-                if (!this.initialChildNodes.length) return;
+                let initialChildNodes = [...this.initialChildNodes.children];
+                if (!initialChildNodes.length) return;
                 google.charts.load("current", { packages: ["corechart"] });
                 google.charts.setOnLoadCallback(() => {
                     const type = this.getAttribute("type");
-                    const columns = ['Variety', 'Qty (UOM)'].concat([this.initialChildNodes.filter(el => el.attributes)[0]].map(el => [...el.attributes].filter(attr => attr.localName.indexOf("xo-")!=0).map(attr => attr.name)).flat().slice(1));
-                    let data = this.initialChildNodes.filter(el => el.attributes).map(el => [el.text, +el.value,
+                    const columns = ['Variety', 'Qty (UOM)'].concat([initialChildNodes.filter(el => el.attributes)[0]].map(el => [...el.attributes].filter(attr => attr.localName.indexOf("xo-")!=0).map(attr => attr.name)).flat().slice(1));
+                    let data = initialChildNodes.filter(el => el.attributes).map(el => [el.text, +el.value,
                     ...columns.slice(2).map(col => {
                         let value = +el.attributes[col];
                         return isNaN(value) ? 0 : value;

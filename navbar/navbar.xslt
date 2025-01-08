@@ -22,6 +22,7 @@
 
 	<xsl:key name="filter" match="*[@navbar:filter]" use="''"/>
 	<xsl:key name="filter" match="*[@navbar:filter]" use="name()"/>
+	<xsl:key name="filter" match="*[@navbar:filter][@navbar:position]" use="@navbar:position"/>
 	
 	<xsl:key name="filter" match="*[@navbar:filter][not(@navbar:position)]" use="generate-id(@navbar:filter)"/>
 	<!--<xsl:key name="filter" match="*[@navbar:filter][not(@navbar:position)]" use="generate-id(@navbar:filter)"/>-->
@@ -67,7 +68,7 @@
 			<legend style="text-transform:capitalize">
 				<xsl:apply-templates mode="headerText" select="."/>
 			</legend>
-			<xsl:apply-templates mode="widget" select="key('filter',generate-id())|key('filter',$state:filterBy)[@navbar:position=$position][1]"/>
+			<xsl:apply-templates mode="widget" select="key('filter',generate-id())|key('filter',$state:filterBy)[@navbar:position=$position][1]|key('filter',$position)"/>
 		</fieldset>
 	</xsl:template>
 
@@ -93,6 +94,7 @@
 	</xsl:template>
 
 	<xsl:template mode="widget" match="*[@navbar:filter='daterange']" priority="1">
+		<xsl:variable name="slot_name">state:selected</xsl:variable>
 		<xsl:variable name="default_date">
 			<xsl:choose>
 				<xsl:when test="../fechas/@state:current_date_er">
@@ -111,9 +113,8 @@
 		<xsl:variable name="curr_month" select="../fechas/row[@mes=$default_date]/@mes"/>
 		<xsl:variable name="start_week" select="../fechas/@state:start_week"/>
 		<xsl:variable name="end_week" select="../fechas/@state:end_week"/>
-		<div class="input-group">
-			<input class="form-control" name="fecha_inicio" type="date" pattern="yyyy-mm-dd" xo-slot="state:fecha_inicio" value="{@state:fecha_inicio}"/>
-			<input class="form-control" name="fecha_fin" type="date" pattern="yyyy-mm-dd" xo-slot="state:fecha_fin" value="{@state:fecha_fin}"/>
-		</div>
+		<px-daterange class="input-group" value="{@*[name()=$slot_name]}" xo-slot="{$slot_name}">
+			<xsl:attribute name="max">{{new Date().toISOString().slice(0,10)}}</xsl:attribute>
+		</px-daterange>
 	</xsl:template>
 </xsl:stylesheet>

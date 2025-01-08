@@ -1,4 +1,5 @@
-﻿<template shadowrootmode="open" min="" max="" adoptcss="*bootstrap*">
+﻿<template shadowrootmode="open" min="" max="">
+    <!--<style adopt="*"></style>-->
     <script>
         let formatValue = (input) => (`${input}`.replace(/(\d{4})-?(\d{2})-?(\d{2})/g, '$1$2$3') || "");
         constructor.extend({
@@ -31,7 +32,7 @@
                     if (lowerRange && upperRange && value != formatValue(this.value)) this.setAttribute('value', value);
                     return value;
                 }
-            },
+            }
         })
     </script>
     <div class="{{@class}}">

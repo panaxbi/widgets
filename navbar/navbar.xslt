@@ -23,7 +23,7 @@
 	<xsl:key name="filter" match="*[@navbar:filter]" use="''"/>
 	<xsl:key name="filter" match="*[@navbar:filter]" use="name()"/>
 	<xsl:key name="filter" match="*[@navbar:filter][@navbar:position]" use="@navbar:position"/>
-	
+
 	<xsl:key name="filter" match="*[@navbar:filter][not(@navbar:position)]" use="generate-id(@navbar:filter)"/>
 	<!--<xsl:key name="filter" match="*[@navbar:filter][not(@navbar:position)]" use="generate-id(@navbar:filter)"/>-->
 
@@ -68,7 +68,7 @@
 			<legend style="text-transform:capitalize">
 				<xsl:apply-templates mode="headerText" select="."/>
 			</legend>
-			<xsl:apply-templates mode="widget" select="key('filter',generate-id())|key('filter',$state:filterBy)[@navbar:position=$position][1]|key('filter',$position)"/>
+			<xsl:apply-templates mode="widget" select="key('filter',generate-id())|key('filter',$state:filterBy)[@navbar:position=$position][1]|key('filter',$position)[1][count(key('filter',$state:filterBy))=0]"/>
 		</fieldset>
 	</xsl:template>
 

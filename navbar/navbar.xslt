@@ -17,15 +17,15 @@
 	<xsl:param name="site:seed">''</xsl:param>
 	<xsl:param name="state:filterBy"></xsl:param>
 
-	<xsl:key name="filters" match="*/@navbar:filter" use="'*'"/>
-	<xsl:key name="filters" match="*/@navbar:filter" use="../@navbar:position"/>
+	<xsl:key name="filters" match="*/@navbar:control" use="'*'"/>
+	<xsl:key name="filters" match="*/@navbar:control" use="../@navbar:position"/>
 
-	<xsl:key name="filter" match="*[@navbar:filter]" use="''"/>
-	<xsl:key name="filter" match="*[@navbar:filter]" use="name()"/>
-	<xsl:key name="filter" match="*[@navbar:filter][@navbar:position]" use="@navbar:position"/>
+	<xsl:key name="filter" match="*[@navbar:control]" use="''"/>
+	<xsl:key name="filter" match="*[@navbar:control]" use="name()"/>
+	<xsl:key name="filter" match="*[@navbar:control][@navbar:position]" use="@navbar:position"/>
 
-	<xsl:key name="filter" match="*[@navbar:filter][not(@navbar:position)]" use="generate-id(@navbar:filter)"/>
-	<!--<xsl:key name="filter" match="*[@navbar:filter][not(@navbar:position)]" use="generate-id(@navbar:filter)"/>-->
+	<xsl:key name="filter" match="*[@navbar:control][not(@navbar:position)]" use="generate-id(@navbar:control)"/>
+	<!--<xsl:key name="filter" match="*[@navbar:control][not(@navbar:position)]" use="generate-id(@navbar:control)"/>-->
 
 	<xsl:template match="/">
 		<span class="page-menu">
@@ -33,12 +33,12 @@
 		</span>
 	</xsl:template>
 
-	<xsl:template mode="headerText" match="@navbar:filter" priority="1">
+	<xsl:template mode="headerText" match="@navbar:control|@navbar:control" priority="1">
 		<xsl:comment>debug:info</xsl:comment>
 		<xsl:apply-templates mode="headerText" select=".."/>
 	</xsl:template>
 
-	<xsl:template mode="headerText" match="*[key('filters',@navbar:position)[2]]/@navbar:filter" priority="1">
+	<xsl:template mode="headerText" match="*[key('filters',@navbar:position)[2]]/@navbar:control" priority="1">
 		<xsl:comment>debug:info</xsl:comment>
 		<xsl:for-each select="key('filter',$state:filterBy)[1]">
 			<select style="font-weight: bold; padding: 1px 5px;" class="form-select" onchange="xo.state.filterBy=this.value">
@@ -52,9 +52,12 @@
 				</xsl:for-each>
 			</select>
 		</xsl:for-each>
+		<xsl:if test="not(key('filter',$state:filterBy))">
+			<script>xover.state.filterBy=''</script>
+		</xsl:if>
 	</xsl:template>
 
-	<xsl:template mode="widget" match="@navbar:filter">
+	<xsl:template mode="widget" match="@navbar:control">
 		<xsl:variable name="current" select="."/>
 		<xsl:variable name="position" select="../@navbar:position"/>
 		<script src="navbar.js"/>
@@ -81,19 +84,19 @@
 		</xsl:apply-templates>
 	</xsl:template>
 
-	<xsl:template mode="widget" match="*[@navbar:filter='default']" priority="1">
+	<xsl:template mode="widget" match="*[@navbar:control='default']" priority="1">
 		<xsl:variable name="value" select="@state:*[local-name()=local-name(current())]"/>
 		<input type="text" class="form-control" name="{name()}" xo-slot="state:{name()}" value="{$value}"/>
 	</xsl:template>
 
-	<xsl:template mode="widget" match="*[@xsi:type='dimension'][@navbar:filter='default']" priority="1">
+	<xsl:template mode="widget" match="*[@xsi:type='dimension'][@navbar:control='default']" priority="1">
 		<xsl:apply-templates mode="combobox:widget" select=".">
 			<xsl:with-param name="dataset" select="row/@desc"/>
 			<xsl:with-param name="xo-slot">state:selected</xsl:with-param>
 		</xsl:apply-templates>
 	</xsl:template>
 
-	<xsl:template mode="widget" match="*[@navbar:filter='daterange']" priority="1">
+	<xsl:template mode="widget" match="*[@navbar:control='daterange']" priority="1">
 		<xsl:variable name="slot_name">state:selected</xsl:variable>
 		<xsl:variable name="default_date">
 			<xsl:choose>

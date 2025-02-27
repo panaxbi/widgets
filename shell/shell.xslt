@@ -39,6 +39,10 @@ xmlns:xlink="http://www.w3.org/1999/xlink"
 				max-height: 100%;
 				width: 100%;
 			}
+			
+			menu.settings .offcanvas-header h6 {
+				margin-left: 1rem;
+			}			
 			]]>
 			</style>
 			<style>

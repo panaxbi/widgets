@@ -14,6 +14,7 @@ xmlns:state="http://panax.io/state"
 	<xsl:template match="text()"/>
 	<xsl:param name="session:debug">false</xsl:param>
 	<xsl:param name="session:version"></xsl:param>
+	<xsl:param name="state:hide_empty">false</xsl:param>
 	<!--<xsl:param name="js:cache_name">xover.session.cache_name.replace(`${location.hostname}_`,'')</xsl:param>-->
 	<xsl:key name="expanded" match="*[@state:expanded='true']" use="true()"/>
 
@@ -165,10 +166,20 @@ xmlns:state="http://panax.io/state"
 							<div id="settings-menu-One" class="accordion-collapse collapse show" data-bs-parent="#settings-accordion">
 								<div class="accordion-body">
 									<menu class="list-group">
-										<button type="button" class="list-group-item list-group-item-action" onclick="xo.stores.active.undo()">Deshacer</button>
-										<button type="button" class="list-group-item list-group-item-action" onclick="xo.stores.active.redo()">Rehacer</button>
+										<!--<button type="button" class="list-group-item list-group-item-action" onclick="xo.stores.active.undo()">Deshacer</button>
+										<button type="button" class="list-group-item list-group-item-action" onclick="xo.stores.active.redo()">Rehacer</button>-->
 										<button type="button" class="list-group-item list-group-item-action" onclick="document.dispatch('print')">Imprimir</button>
+										<button type="button" class="list-group-item list-group-item-action" onclick="generateExcelFile(document.querySelector('table'),xover.stores.active.tag)">Enviar a excel...</button>
 										<button type="button" class="list-group-item list-group-item-action" onclick="xover.session.saveSession();">Guardar sesión</button>
+										<button type="button" class="list-group-item list-group-item-action" onclick="xo.stores.active.select(`//@group:*|//@filter:*`).remove()">Borrar filtros y agrupaciones</button>
+										<xsl:if test="$state:hide_empty!=''">
+											<button type="button" class="list-group-item list-group-item-action" onclick="xo.state.hide_empty = !xo.state.hide_empty">
+												<xsl:choose>
+													<xsl:when test="$state:hide_empty='true'">Mostrar registros en ceros</xsl:when>
+													<xsl:otherwise>Ocultar registros en ceros</xsl:otherwise>
+												</xsl:choose>
+											</button>
+										</xsl:if>
 										<xsl:if test="$session:version!=''">
 											<button type="button" class="list-group-item list-group-item-action" onclick="xover.session.clearCache();">Borrar caché</button>
 										</xsl:if>

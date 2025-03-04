@@ -166,6 +166,7 @@ xo.listener.on(`beforeTransform?stylesheet.selectFirst("//comment()[starts-with(
     for (let attr of this.select(`//@group:*`)) {
         let group_node = xover.xml.createElement(attr.name);
         for (let value of attr.parentNode.select(`row/@${attr.localName}`).distinct()) {
+            value = xover.string.htmlDecode(value);
             let row = xover.xml.createElement("row");
             row.setAttribute("desc", value);
             group_node.append(row);

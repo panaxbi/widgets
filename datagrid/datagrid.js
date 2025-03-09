@@ -307,6 +307,7 @@ async function generateExcelFile(table, name) {
     //}, 500);
     table = table.cloneNode(true);
     table.querySelectorAll('del,.hidden,.non-printable').toArray().remove();
+    const hidden = [...document.querySelectorAll("colgroup col")].map(col => col.matches(".hidden"));
     /*debugger*/
     for (a of table.querySelectorAll('a')) {
         a.replaceWith(a.createTextNode(a.selectFirst("text()[1]")))
@@ -339,7 +340,13 @@ async function generateExcelFile(table, name) {
     for (let row of rows) {
         ++r;
         _progress = r / rows.length * 100;
-        [...row.getElementsByTagName("td")].forEach(el => set_computed_background(el));
+        for (let [ix, el] of Object.entries(row.querySelectorAll("td,th"))) {
+            if (hidden[ix]) {
+                el.remove();
+                continue;
+            }
+            el => set_computed_background(el);
+        }
         if (r % (rows.length / 10) == 0) {
             progress_bar.value = _progress;
             await xover.delay(500);

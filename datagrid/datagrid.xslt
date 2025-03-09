@@ -58,12 +58,18 @@ xmlns:debug="http://panax.io/debug"
 	<xsl:key name="expand:group" match="expand:groups/row/@*[namespace-uri()='']" use="concat(name(),'::',.)"/>
 
 	<xsl:template mode="datagrid:widget" match="*|@*">
-		<xsl:param name="x-dimensions" select="(@*[namespace-uri()='']|@*[namespace-uri()='http://panax.io/state/group'])[not(key('state:hidden',name()))][not(key('data:group', concat('group:',name())))]"/>
+		<xsl:param name="x-dimensions" select="@*[namespace-uri()=''][not(key('data:group', concat('group:',name())))]|@*[namespace-uri()='http://panax.io/state/group']"/>
 		<xsl:param name="y-dimensions" select="key('y-dimension', name(ancestor-or-self::*[1]))"/>
 		<xsl:param name="groups" select="key('data:group',$state:groupBy)"/>
 		<xsl:variable name="data" select="key('data',node)"/>
 		<style>
 			<![CDATA[
+		table colgroup col.hidden {
+			width: 0 !important;
+			visibility: collapse;
+			display: table-column;
+		}
+		
         table td.freeze {
           background-color: white;
         }
@@ -292,7 +298,6 @@ xmlns:debug="http://panax.io/debug"
 			]]>
 		</style>
 		<script src="datagrid.js" fetchpriority="high"/>
-
 		<table class="table table-striped selection-enabled datagrid">
 			<xsl:apply-templates mode="datagrid:colgroup" select=".">
 				<xsl:with-param name="x-dimension" select="$x-dimensions"/>
@@ -458,25 +463,37 @@ xmlns:debug="http://panax.io/debug"
 	<xsl:template mode="datagrid:tbody-footer" match="*|@*"/>
 
 	<xsl:template mode="datagrid:colgroup" match="*">
-		<xsl:param name="x-dimension" select="@*[not(key('state:hidden',name()))]"/>
+		<xsl:param name="x-dimension" select="@*"/>
 		<colgroup>
 			<col width="50"/>
-			<xsl:apply-templates mode="datagrid:colgroup-col" select="$x-dimension"/>
+			<xsl:apply-templates mode="datagrid:colgroup-col" select="$x-dimension">
+				<xsl:sort order="descending" select="namespace-uri()!=''"/>
+			</xsl:apply-templates>
 		</colgroup>
 	</xsl:template>
+
+	<xsl:attribute-set name="datagrid:colgroup-col-class">
+		<xsl:attribute name="class">
+			<xsl:if test="key('state:hidden',name())">hidden</xsl:if>
+		</xsl:attribute>
+	</xsl:attribute-set>
 
 	<xsl:template mode="datagrid:colgroup-col" match="@*">
 		<xsl:comment>
 			<xsl:value-of select="name()"/>
 		</xsl:comment>
-		<col width="100"/>
+		<xsl:element name="col" use-attribute-sets="datagrid:colgroup-col-class">
+			<xsl:attribute name="width">100</xsl:attribute>
+		</xsl:element>
 	</xsl:template>
 
 	<xsl:template mode="datagrid:colgroup-col" match="key('data_type','description')">
 		<xsl:comment>
 			<xsl:value-of select="name()"/>
 		</xsl:comment>
-		<col width="280"/>
+		<xsl:element name="col" use-attribute-sets="datagrid:colgroup-col-class">
+			<xsl:attribute name="width">200</xsl:attribute>
+		</xsl:element>
 	</xsl:template>
 
 	<xsl:key name="datagrid:record" match="row" use="@xo:id"/>
@@ -578,7 +595,9 @@ xmlns:debug="http://panax.io/debug"
 															<xsl:attribute name="disabled"/>
 														</xsl:when>
 														<xsl:otherwise>
-															<xsl:attribute name="onclick">scope.set(<xsl:value-of select="$checked"/>)</xsl:attribute>
+															<xsl:attribute name="onclick">
+																scope.set(<xsl:value-of select="$checked"/>)
+															</xsl:attribute>
 														</xsl:otherwise>
 													</xsl:choose>
 												</input>

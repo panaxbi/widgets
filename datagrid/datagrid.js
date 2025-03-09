@@ -148,7 +148,7 @@ xover.listener.on('transform', function () {
 xover.listener.on('ungroup', function () {
     let scope = this.scope;
     let group = scope.selectFirst('(.)[not(self::*)][namespace-uri()="http://panax.io/state/group"]|ancestor-or-self::*[namespace-uri()="http://panax.io/state/group"]');
-    let store = scope.ownerDocument.store;
+    let store = scope.ownerDocument;
     store.select(`//@group:${group.localName}`).remove()
 })
 

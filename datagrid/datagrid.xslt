@@ -556,6 +556,9 @@ xmlns:debug="http://panax.io/debug"
 						<div class="dropdown-item" style="height: 350px; overflow-y: scroll;">
 							<ul class="list-group">
 								<xsl:for-each select="$x-dimension/../@*[namespace-uri()='']">
+									<xsl:variable name="column" select="current()"/>
+									<xsl:variable name="hidden" select="key('state:hidden',name())"/>
+									<xsl:variable name="grouped" select="key('data:group',concat('group:',name()))"/>
 									<li class="list-group-item" onclick="event.preventDefault(); return false;" draggable="true">
 										<xsl:choose>
 											<xsl:when test="key('data:group', concat('group:',name()))">
@@ -565,16 +568,17 @@ xmlns:debug="http://panax.io/debug"
 												</svg>
 											</xsl:when>
 											<xsl:otherwise>
+												<xsl:variable name="checked" select="$grouped or not($hidden)"/>
 												<input class="form-check-input me-1" type="checkbox" value="" id="{generate-id()}" xo-slot="hidden:{name()}">
-													<xsl:if test="$x-dimension[name()=name(current())] or key('data:group', concat('group:',name()))">
+													<xsl:if test="$checked">
 														<xsl:attribute name="checked"/>
 													</xsl:if>
 													<xsl:choose>
-														<xsl:when test="key('data:group', concat('group:',name()))">
+														<xsl:when test="$grouped">
 															<xsl:attribute name="disabled"/>
 														</xsl:when>
 														<xsl:otherwise>
-															<xsl:attribute name="onclick">scope.toggle('false','true')</xsl:attribute>
+															<xsl:attribute name="onclick">scope.set(<xsl:value-of select="$checked"/>)</xsl:attribute>
 														</xsl:otherwise>
 													</xsl:choose>
 												</input>

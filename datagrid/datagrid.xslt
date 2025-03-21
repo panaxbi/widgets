@@ -174,6 +174,7 @@ xmlns:debug="http://panax.io/debug"
 		</style>
 		<style>
 			<![CDATA[
+				table .dropdown-menu { box-shadow: 5px 7px 5px 0px rgba(0, 0, 0, 0.2); }
 				table tbody td span.filterable { cursor: pointer }
 				table tbody td span.groupable { cursor: pointer }
 

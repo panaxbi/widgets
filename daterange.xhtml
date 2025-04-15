@@ -28,7 +28,7 @@
                     let [lowerRange = '', upperRange = ''] = formatValue(input).split(/[-~]/);
                     parts.lowerRange.value = lowerRange.replace(/(\d{4})-?(\d{2})-?(\d{2})/, "$1-$2-$3");
                     parts.upperRange.value = upperRange.replace(/(\d{4})-?(\d{2})-?(\d{2})/, "$1-$2-$3");
-                    let value = `${lowerRange.replaceAll('-', '')}-${upperRange.replaceAll('-', '')}`;
+                    let value = `${lowerRange.replaceAll('-', '')}-${upperRange.replaceAll('-', '')}`.replace(/^-$/,'');
                     if (lowerRange && upperRange && value != formatValue(this.value)) this.setAttribute('value', value);
                     return value;
                 }

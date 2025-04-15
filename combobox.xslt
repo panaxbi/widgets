@@ -17,8 +17,8 @@
 		<xsl:variable name="current" select="."/>
 		<xsl:variable name="attribute"/>
 		<!--<style><![CDATA[px-combobox > * {style:none}]]></style>-->
-		<px-combobox xo-slot="{$xo-slot}" value="{$selected-value}">
-			<xsl:attribute name="onmouseover">scope.dispatch('downloadCatalog')</xsl:attribute>
+		<px-combobox name="{name()}" xo-slot="{$xo-slot}" value="{$selected-value}">
+			<!--<xsl:attribute name="onfocus">debugger; scope.dispatch('downloadCatalog')</xsl:attribute>-->
 			<xsl:apply-templates mode="combobox:option-clear" select="$selected-value"/>
 			<xsl:apply-templates mode="combobox:option" select="$dataset">
 				<xsl:with-param name="selected-value" select="$selected-value"/>
@@ -73,7 +73,6 @@
 		</option>
 	</xsl:template>
 
-	<xsl:template mode="combobox:option-clear" match="@*">
-		<option class="data-row non-filterable" value="" style="color: red">- BORRAR SELECCIÓN -</option>
+	<xsl:template mode="combobox:option-clear" match="*|@*">
 	</xsl:template>
 </xsl:stylesheet>

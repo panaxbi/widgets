@@ -61,9 +61,10 @@ xmlns:debug="http://panax.io/debug"
 		<xsl:param name="x-dimensions" select="@*[namespace-uri()=''][not(key('data:group', concat('group:',name())))]|@*[namespace-uri()='http://panax.io/state/group']"/>
 		<xsl:param name="y-dimensions" select="key('y-dimension', name(ancestor-or-self::*[1]))"/>
 		<xsl:param name="groups" select="key('data:group',$state:groupBy)"/>
-		<xsl:variable name="data" select="key('data',node)"/>
 		<style>
 			<![CDATA[
+		table .dropdown-item.active, .dropdown-item:active { background-color: white; }
+		
 		table colgroup col.hidden {
 			width: 0 !important;
 			visibility: collapse;
@@ -175,6 +176,7 @@ xmlns:debug="http://panax.io/debug"
 		<style>
 			<![CDATA[
 				table .dropdown-menu { box-shadow: 5px 7px 5px 0px rgba(0, 0, 0, 0.2); }
+				table .dropdown-item.active, .dropdown-item:active { background-color: white; }
 				table tbody td span.filterable { cursor: pointer }
 				table tbody td span.groupable { cursor: pointer }
 
@@ -529,6 +531,83 @@ xmlns:debug="http://panax.io/debug"
 		</xsl:apply-templates>
 	</xsl:template>
 
+	<xsl:template mode="datagrid:header-row-config" match="*">
+		<xsl:param name="fields" select="node-expected"/>
+		<ul class="dropdown-menu">
+			<xsl:if test="$state:hide_empty!=''">
+				<li>
+					<a class="dropdown-item" href="#" onclick="xo.state.hide_empty = !xo.state.hide_empty">
+						<xsl:choose>
+							<xsl:when test="$state:hide_empty='true'">Mostrar registros en ceros</xsl:when>
+							<xsl:otherwise>Ocultar registros en ceros</xsl:otherwise>
+						</xsl:choose>
+					</a>
+				</li>
+			</xsl:if>
+			<xsl:if test="//@group:*[1]|//@filter:*[1]">
+				<li>
+					<a class="dropdown-item" href="#" onclick="xo.stores.active.select(`//@group:*|//@filter:*`).remove()">Borrar filtros y agrupaciones</a>
+				</li>
+			</xsl:if>
+			<xsl:if test="//@group:*[1]">
+				<li>
+					<a class="dropdown-item" href="#" onclick="xo.state.collapse_all = true">
+						<xsl:choose>
+							<xsl:when test="$state:collapse_all = 'true'">
+								<xsl:attribute name="onclick">xo.state.collapse_all = false</xsl:attribute>
+								Expandir todo
+							</xsl:when>
+							<xsl:otherwise>Colapsar todo</xsl:otherwise>
+						</xsl:choose>
+					</a>
+				</li>
+			</xsl:if>
+			<li>
+				<hr class="dropdown-divider"/>
+			</li>
+			<div class="dropdown-item" style="height: 350px; overflow-y: scroll;">
+				<ul class="list-group">
+					<xsl:for-each select="$fields">
+						<xsl:variable name="column" select="current()"/>
+						<xsl:variable name="hidden" select="key('state:hidden',name())"/>
+						<xsl:variable name="grouped" select="key('data:group',concat('group:',name()))"/>
+						<li class="list-group-item" onclick="event.preventDefault(); return false;" draggable="true">
+							<xsl:choose>
+								<xsl:when test="key('data:group', concat('group:',name()))">
+									<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-stack ms-2 button" viewBox="0 0 16 16" onclick="dispatch('ungroup')" xo-slot="group:cte" xo-scope="ventas_b8fed1ac_71f3_4320_89b2_3af43d6374a7">
+										<path d="m14.12 10.163 1.715.858c.22.11.22.424 0 .534L8.267 15.34a.6.6 0 0 1-.534 0L.165 11.555a.299.299 0 0 1 0-.534l1.716-.858 5.317 2.659c.505.252 1.1.252 1.604 0l5.317-2.66zM7.733.063a.6.6 0 0 1 .534 0l7.568 3.784a.3.3 0 0 1 0 .535L8.267 8.165a.6.6 0 0 1-.534 0L.165 4.382a.299.299 0 0 1 0-.535z"></path>
+										<path d="m14.12 6.576 1.715.858c.22.11.22.424 0 .534l-7.568 3.784a.6.6 0 0 1-.534 0L.165 7.968a.299.299 0 0 1 0-.534l1.716-.858 5.317 2.659c.505.252 1.1.252 1.604 0z"></path>
+									</svg>
+								</xsl:when>
+								<xsl:otherwise>
+									<xsl:variable name="checked" select="$grouped or not($hidden)"/>
+									<input class="form-check-input me-1" type="checkbox" value="" id="{generate-id()}" xo-slot="hidden:{name()}">
+										<xsl:if test="$checked">
+											<xsl:attribute name="checked"/>
+										</xsl:if>
+										<xsl:choose>
+											<xsl:when test="$grouped">
+												<xsl:attribute name="disabled"/>
+											</xsl:when>
+											<xsl:otherwise>
+												<xsl:attribute name="onclick">
+													scope.set(<xsl:value-of select="$checked"/>)
+												</xsl:attribute>
+											</xsl:otherwise>
+										</xsl:choose>
+									</input>
+								</xsl:otherwise>
+							</xsl:choose>
+							<label class="form-check-label" for="{generate-id()}">
+								<xsl:apply-templates mode="headerText" select="."/>
+							</label>
+						</li>
+					</xsl:for-each>
+				</ul>
+			</div>
+		</ul>
+	</xsl:template>
+
 	<xsl:template mode="datagrid:header-row" match="*">
 		<xsl:param name="x-dimension" select="node-expected"/>
 		<tr>
@@ -539,79 +618,9 @@ xmlns:debug="http://panax.io/debug"
 							<path d="M9.405 1.05c-.413-1.4-2.397-1.4-2.81 0l-.1.34a1.464 1.464 0 0 1-2.105.872l-.31-.17c-1.283-.698-2.686.705-1.987 1.987l.169.311c.446.82.023 1.841-.872 2.105l-.34.1c-1.4.413-1.4 2.397 0 2.81l.34.1a1.464 1.464 0 0 1 .872 2.105l-.17.31c-.698 1.283.705 2.686 1.987 1.987l.311-.169a1.464 1.464 0 0 1 2.105.872l.1.34c.413 1.4 2.397 1.4 2.81 0l.1-.34a1.464 1.464 0 0 1 2.105-.872l.31.17c1.283.698 2.686-.705 1.987-1.987l-.169-.311a1.464 1.464 0 0 1 .872-2.105l.34-.1c1.4-.413 1.4-2.397 0-2.81l-.34-.1a1.464 1.464 0 0 1-.872-2.105l.17-.31c.698-1.283-.705-2.686-1.987-1.987l-.311.169a1.464 1.464 0 0 1-2.105-.872zM8 10.93a2.929 2.929 0 1 1 0-5.86 2.929 2.929 0 0 1 0 5.858z"/>
 						</svg>
 					</button>
-					<ul class="dropdown-menu">
-						<xsl:if test="$state:hide_empty!=''">
-							<li>
-								<a class="dropdown-item" href="#" onclick="xo.state.hide_empty = !xo.state.hide_empty">
-									<xsl:choose>
-										<xsl:when test="$state:hide_empty='true'">Mostrar registros en ceros</xsl:when>
-										<xsl:otherwise>Ocultar registros en ceros</xsl:otherwise>
-									</xsl:choose>
-								</a>
-							</li>
-						</xsl:if>
-						<xsl:if test="//@group:*[1]|//@filter:*[1]">
-							<li>
-								<a class="dropdown-item" href="#" onclick="xo.stores.active.select(`//@group:*|//@filter:*`).remove()">Borrar filtros y agrupaciones</a>
-							</li>
-						</xsl:if>
-						<xsl:if test="//@group:*[1]">
-							<li>
-								<a class="dropdown-item" href="#" onclick="xo.state.collapse_all = true">
-									<xsl:choose>
-										<xsl:when test="$state:collapse_all = 'true'">
-											<xsl:attribute name="onclick">xo.state.collapse_all = false</xsl:attribute>
-											Expandir todo
-										</xsl:when>
-										<xsl:otherwise>Colapsar todo</xsl:otherwise>
-									</xsl:choose>
-								</a>
-							</li>
-						</xsl:if>
-						<li>
-							<hr class="dropdown-divider"/>
-						</li>
-						<div class="dropdown-item" style="height: 350px; overflow-y: scroll;">
-							<ul class="list-group">
-								<xsl:for-each select="$x-dimension/../@*[namespace-uri()='']">
-									<xsl:variable name="column" select="current()"/>
-									<xsl:variable name="hidden" select="key('state:hidden',name())"/>
-									<xsl:variable name="grouped" select="key('data:group',concat('group:',name()))"/>
-									<li class="list-group-item" onclick="event.preventDefault(); return false;" draggable="true">
-										<xsl:choose>
-											<xsl:when test="key('data:group', concat('group:',name()))">
-												<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-stack ms-2 button" viewBox="0 0 16 16" onclick="dispatch('ungroup')" xo-slot="group:cte" xo-scope="ventas_b8fed1ac_71f3_4320_89b2_3af43d6374a7">
-													<path d="m14.12 10.163 1.715.858c.22.11.22.424 0 .534L8.267 15.34a.6.6 0 0 1-.534 0L.165 11.555a.299.299 0 0 1 0-.534l1.716-.858 5.317 2.659c.505.252 1.1.252 1.604 0l5.317-2.66zM7.733.063a.6.6 0 0 1 .534 0l7.568 3.784a.3.3 0 0 1 0 .535L8.267 8.165a.6.6 0 0 1-.534 0L.165 4.382a.299.299 0 0 1 0-.535z"></path>
-													<path d="m14.12 6.576 1.715.858c.22.11.22.424 0 .534l-7.568 3.784a.6.6 0 0 1-.534 0L.165 7.968a.299.299 0 0 1 0-.534l1.716-.858 5.317 2.659c.505.252 1.1.252 1.604 0z"></path>
-												</svg>
-											</xsl:when>
-											<xsl:otherwise>
-												<xsl:variable name="checked" select="$grouped or not($hidden)"/>
-												<input class="form-check-input me-1" type="checkbox" value="" id="{generate-id()}" xo-slot="hidden:{name()}">
-													<xsl:if test="$checked">
-														<xsl:attribute name="checked"/>
-													</xsl:if>
-													<xsl:choose>
-														<xsl:when test="$grouped">
-															<xsl:attribute name="disabled"/>
-														</xsl:when>
-														<xsl:otherwise>
-															<xsl:attribute name="onclick">
-																scope.set(<xsl:value-of select="$checked"/>)
-															</xsl:attribute>
-														</xsl:otherwise>
-													</xsl:choose>
-												</input>
-											</xsl:otherwise>
-										</xsl:choose>
-										<label class="form-check-label" for="{generate-id()}">
-											<xsl:apply-templates mode="headerText" select="."/>
-										</label>
-									</li>
-								</xsl:for-each>
-							</ul>
-						</div>
-					</ul>
+					<xsl:apply-templates mode="datagrid:header-row-config" select=".">
+						<xsl:with-param name="fields" select="$x-dimension/../@*[namespace-uri()='']"/>
+					</xsl:apply-templates>
 				</div>
 			</th>
 			<xsl:apply-templates mode="datagrid:header-cell" select="$x-dimension">
@@ -944,9 +953,6 @@ xmlns:debug="http://panax.io/debug"
 					<xsl:apply-templates select="../@desc"/>
 				</strong>
 			</th> TODO: Implementar esto cuando se quiean ocultar las columnas que están agrupando -->
-			<!--<td>
-				here: <xsl:apply-templates mode="debug:name" select="($x-dimension[namespace-uri()=''][not(key('data:group',concat('group:',name())))])"/>
-			</td>-->
 			<xsl:apply-templates mode="datagrid:tbody-header-cell" select="$x-dimension[namespace-uri()=''][not(key('data:group',concat('group:',name())))]">
 				<xsl:with-param name="rows" select="$rows"/>
 			</xsl:apply-templates>

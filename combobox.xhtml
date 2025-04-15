@@ -1,5 +1,10 @@
 ﻿<template text="">
     <style>
+        px-combobox {
+            width: fit-content;
+            display: block;
+        }
+
         ::slotted(*) {
             display: none;
         }
@@ -62,6 +67,16 @@
                 this.value = [...this.parts.select.selectedOptions].map(option => option.value).join(", ") || this.value || "";
                 this.text = [...this.parts.select.selectedOptions].map(option => option.text).join(", ") || this.text || "";
             }
+            , options: {
+                get() {
+                    return this.parts.select.options;
+                }
+            }
+            , selectedIndex: {
+                get() {
+                    return this.parts.select.selectedIndex;
+                }
+            }
             , selectOption() {
                 let dropdown = this.parts.body;
                 let combo = this.parts.select;
@@ -69,11 +84,11 @@
                 let selectedOptions = this.parts.select.selectedOptions;
                 let input = this.parts.search;
                 input.searchText = ''
-                input.value = [...selectedOptions].map(option => option.text).join(", ");
-                let value = [...selectedOptions].map(option => option.getAttributeNode("value") || option.text || document.createElement('p').getAttributeNode("value")).join(", ");
+                let value = [...selectedOptions].map(option => option.value).join(", ");
+                let text = [...selectedOptions].map(option => option.getAttributeNode("text") || option.text || document.createElement('p').getAttributeNode("value")).join(", ");
                 //if (value) this.scope.set(value);
                 this.value = value;
-                this.text = input.value;
+                this.text = text;
                 if (input === input.ownerDocument.activeElement) input.blur()
 
                 let toggler = dropdown.querySelector("[data-bs-toggle]");

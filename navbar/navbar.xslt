@@ -99,6 +99,10 @@
 		</xsl:apply-templates>
 	</xsl:template>
 
+	<xsl:template mode="combobox:option-clear" match="@*">
+		<option class="data-row non-filterable" value="" text="" style="color: red">- QUITAR SELECCIÓN -</option>
+	</xsl:template>
+
 	<xsl:template mode="widget" match="*[@navbar:control='daterange']" priority="1">
 		<xsl:variable name="slot_name">state:selected</xsl:variable>
 		<xsl:variable name="default_date">

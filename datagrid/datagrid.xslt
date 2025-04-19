@@ -574,7 +574,7 @@ xmlns:debug="http://panax.io/debug"
 						<li class="list-group-item" onclick="event.preventDefault(); return false;" draggable="true">
 							<xsl:choose>
 								<xsl:when test="key('data:group', concat('group:',name()))">
-									<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-stack ms-2 button" viewBox="0 0 16 16" onclick="dispatch('ungroup')" xo-slot="group:cte" xo-scope="ventas_b8fed1ac_71f3_4320_89b2_3af43d6374a7">
+									<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-stack ms-2 button" viewBox="0 0 16 16" onclick="dispatch('ungroup')" xo-slot="group:cte">
 										<path d="m14.12 10.163 1.715.858c.22.11.22.424 0 .534L8.267 15.34a.6.6 0 0 1-.534 0L.165 11.555a.299.299 0 0 1 0-.534l1.716-.858 5.317 2.659c.505.252 1.1.252 1.604 0l5.317-2.66zM7.733.063a.6.6 0 0 1 .534 0l7.568 3.784a.3.3 0 0 1 0 .535L8.267 8.165a.6.6 0 0 1-.534 0L.165 4.382a.299.299 0 0 1 0-.535z"></path>
 										<path d="m14.12 6.576 1.715.858c.22.11.22.424 0 .534l-7.568 3.784a.6.6 0 0 1-.534 0L.165 7.968a.299.299 0 0 1 0-.534l1.716-.858 5.317 2.659c.505.252 1.1.252 1.604 0z"></path>
 									</svg>
@@ -952,7 +952,7 @@ xmlns:debug="http://panax.io/debug"
 				<strong>
 					<xsl:apply-templates select="../@desc"/>
 				</strong>
-			</th> TODO: Implementar esto cuando se quiean ocultar las columnas que están agrupando -->
+			</th> TODO: Implementar esto cuando se quieran ocultar las columnas que están agrupando -->
 			<xsl:apply-templates mode="datagrid:tbody-header-cell" select="$x-dimension[namespace-uri()=''][not(key('data:group',concat('group:',name())))]">
 				<xsl:with-param name="rows" select="$rows"/>
 			</xsl:apply-templates>
@@ -961,6 +961,22 @@ xmlns:debug="http://panax.io/debug"
 
 	<xsl:template mode="datagrid:tbody-header-cell" match="@*">
 		<th></th>
+	</xsl:template>
+	
+	<xsl:template mode="datagrid:tbody-header-cell" match="@*[key('total', name())]">
+		<xsl:param name="rows" select="node-expected"/>
+		<xsl:param name="data" select="@attributes-expected"/>
+		<th class="number">
+			<xsl:variable name="value">
+				<xsl:apply-templates mode="datagrid:aggregate" select=".">
+					<xsl:with-param name="data" select="$rows/@*[name()=local-name(current())]"/>
+				</xsl:apply-templates>
+			</xsl:variable>
+			<xsl:call-template name="format">
+				<xsl:with-param name="value" select="$value"/>
+				<xsl:with-param name="mask">###,##0;-###,##0</xsl:with-param>
+			</xsl:call-template>
+		</th>
 	</xsl:template>
 
 	<xsl:template mode="datagrid:tbody-header-cell" match="key('data_type', 'number')|@*[key('datatype', concat('number:',name()))]">

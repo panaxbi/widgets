@@ -21,6 +21,14 @@ xmlns="http://www.w3.org/1999/xhtml"
 		background:<xsl:value-of select="ancestor-or-self::*/@color"/> !important; color: white;
 	</xsl:template>
 
+	<xsl:template match="@*" priority="-5">
+		<xsl:param name="separator">, </xsl:param>
+		<xsl:if test="position()&gt;1">
+			<xsl:value-of select="$separator"/>
+		</xsl:if>
+		<xsl:value-of select="."/>
+	</xsl:template>
+
 	<xsl:template mode="value" match="@status">
 		<xsl:value-of select="concat(translate(substring(.,1,1),$lowercase,$uppercase), substring(.,2))"/>
 	</xsl:template>

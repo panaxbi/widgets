@@ -73,6 +73,5 @@
 		</option>
 	</xsl:template>
 
-	<xsl:template mode="combobox:option-clear" match="*|@*">
-	</xsl:template>
+	<xsl:template mode="combobox:option-clear" match="@*" priority="-1"></xsl:template>
 </xsl:stylesheet>

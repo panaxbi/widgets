@@ -165,7 +165,8 @@ xover.listener.on('dropped::tbody', function ({ srcElement }) {
 xo.listener.on(`beforeTransform?stylesheet.selectFirst("//comment()[starts-with(.,'ack:imported-from')][contains(.,'datagrid.xslt')]")::model[*/@group:*]`, function ({ document }) {
     for (let attr of this.select(`//@group:*`)) {
         let group_node = xover.xml.createElement(attr.name);
-        for (let value of attr.parentNode.select(`row/@${attr.localName}`).distinct()) {
+        let root_node = attr.single('ancestor::*[not(self::row)][1]');
+        for (let value of root_node.select(`.//row/@${attr.localName}`).distinct()) {
             value = xover.string.htmlDecode(value);
             let row = xover.xml.createElement("row");
             row.setAttribute("desc", value);
@@ -257,7 +258,7 @@ collapse_or_expand = function (action = 'collapse') {
     }
     let row = xover.xml.createElement("row");
     for (let attr of parent_groups) {
-        row.setAttribute(attr.nodeName, attr.value);
+        row.setAttribute(attr.nodeName, attr.value || attr.parentNode.single(`ancestor-or-self::*[@${attr.nodeName}][1]/@${attr.nodeName}`)); //sometimes the value is empty because the attribute is set on the parent node
     }
     let predicate = [...row.attributes].map((attr) => `[@${attr.nodeName}="${attr.value}"]`).join('');
     let matches = group_node.select(`row${predicate}`).filter(el => row.attributes.length == [...el.attributes].filter(a => !(a.namespaceURI)).length);

@@ -226,6 +226,7 @@ xmlns:debug="http://panax.io/debug"
 					border-top: 10px solid red;
 					display: none;
 					position: absolute;
+					z-index: 1019;
 				}
 				
 				.icon-btn {

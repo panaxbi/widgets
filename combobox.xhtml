@@ -71,6 +71,7 @@
                 this.parts.search.addEventListener('keyup', this.keyup)
                 this.parts.search.addEventListener('keydown', this.keydown)
                 this.parts.select.addEventListener('change', this.change)
+                this.parts.toggler.addEventListener('shown.bs.dropdown', this.showAllOptions)
             }
             , options: {
                 get() {
@@ -172,7 +173,6 @@
                         } catch (e) { }
                     }
                 }
-                debugger
                 toggler && new bootstrap.Dropdown(toggler).hide();
             }, keyup(event) {
                 let host = this.host;
@@ -233,6 +233,15 @@
                 toggler && new bootstrap.Dropdown(toggler).hide();
                 let active_item = optionsList.querySelectorAll("li, option").toArray().filter(option => !(option.disabled || option.classList.contains("disabled")) && (option.selected || option.classList.contains("active"))).pop();
                 this.host.selectOption(active_item);
+            }, showAllOptions() {
+                let host = this.host || {};
+                if (host.constructor != constructor) return;
+                let input = host.parts.search;
+                let select = host.parts.select;
+                input.value = input.searchText || '';
+                !input.searchText && select.querySelectorAll(`.hidden,.active`).forEach(el => el.classList.remove("hidden", "active"));
+                input.focus();
+                (select.selectedOptions[0] || document.createElement('p')).scrollIntoView();
             }
         })
 
@@ -406,7 +415,7 @@
         //})
     </script>
     <div part="body" class="dropdown form-input form-control combobox" style="min-width: 19ch; display: flex; position: relative; flex: 1 1 auto; padding: 0; border: none !important;">
-        <button class="btn btn-lg dropdown-toggle form-control" xo-static="@*" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="display:flex; padding: 0; background: transparent; padding-right: 2.5rem; top: 0;" tabindex="-1" onfocus="let input = this.querySelector('[type=search]'); input !== document.activeElement &amp;&amp; !input.justLostFocus &amp;&amp; this.querySelector('input').focus();">
+        <button part="toggler" class="btn btn-lg dropdown-toggle form-control" xo-static="@*" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="display:flex; padding: 0; background: transparent; padding-right: 2.5rem; top: 0;" tabindex="-1" onfocus="let input = this.querySelector('[type=search]'); input !== document.activeElement &amp;&amp; !input.justLostFocus &amp;&amp; this.querySelector('input').focus();">
             <div class="form-group input-group" style="min-width: calc(19ch + 6rem);border: none;">
                 <input part="search" type="search" name="" class="form-control" autocomplete="off" aria-autocomplete="none" maxlength="" size="" value="{{@text}}" onfocus="host.scope.dispatch('downloadCatalog')" style="border: 0 solid transparent !important; background: transparent;"/>
             </div>

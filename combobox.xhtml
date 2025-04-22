@@ -72,6 +72,7 @@
                 this.parts.search.addEventListener('keydown', this.keydown)
                 this.parts.select.addEventListener('change', this.change)
                 this.parts.toggler.addEventListener('shown.bs.dropdown', this.showAllOptions)
+                this.parts.toggler.addEventListener('hide.bs.dropdown', this.dropdownHidden)
             }
             , options: {
                 get() {
@@ -242,6 +243,15 @@
                 !input.searchText && select.querySelectorAll(`.hidden,.active`).forEach(el => el.classList.remove("hidden", "active"));
                 input.focus();
                 (select.selectedOptions[0] || document.createElement('p')).scrollIntoView();
+            }, dropdownHidden() {
+                let host = this.host || {};
+                if (host.constructor != constructor) return;
+                let input = host.parts.search;
+                input.searchText = input.value;
+                input.value = input.placeholder || '';
+                if (this !== document.activeElement && this.contains(document.activeElement)) {
+                    event.preventDefault();
+                }
             }
         })
 

@@ -31,15 +31,19 @@ xover.listener.on('changeFilter', function (position, value) {
 	xover.state[`filterBy_${position}`] = value;
 })
 
-xover.listener.on(`change::@state:selected`, async function ({ value, store }) {
-	for (let field of [...document.forms[1].querySelectorAll(`fieldset > [name]`)]) {
+xover.listener.on([`change::@state:selected`, "beforeFetch::?FROM=^PanaxBI.#server:request"], async function ({ document, value }) {
+	let url = document.url;
+	if (!url) return;
+	for (let field of [...document.querySelectorAll(`form fieldset > [name]`)]) {
 		let field_name = field.scope.closest('*').localName;
 		if (!field.value || field.closest(`.mutually-exclusive`) && field.matches(`[type=hidden]`)) {
-			store.url.searchParams.delete(`@${field_name}`)
+			url.searchParams.delete(`@${field_name}`)
 		} else {
-			store.url.searchParams.set(`@${field_name}`, field.value)
+			url.searchParams.set(`@${field_name}`, field.value)
 		}
 	}
-	store.url.searchParams.set(`@${this.parentNode.localName}`, value || null);
-	store.fetch()
+	if (instanceOf.call(this, Attr)) {
+		url.searchParams.set(`@${this.parentNode.localName}`, value || null);
+		document.fetch()
+	}
 })

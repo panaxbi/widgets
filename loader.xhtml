@@ -1,0 +1,52 @@
+﻿<template class="loading" onclick="this.remove()" role="alert" aria-busy="true">
+    <script>
+        constructor.extend({
+            init() {
+                //if (!(this.parts.search && this.parts.select)) return;
+                //this.value = [...this.parts.select.selectedOptions].map(option => option.value).join(", ") || this.value || "";
+                //this.text = [...this.parts.select.selectedOptions].map(option => option.text).join(", ") || this.text || "";
+                //this.parts.search.addEventListener('input', this.filter)
+                //this.parts.search.addEventListener('focusin', this.filter)
+                //this.parts.search.addEventListener('keyup', this.keyup)
+                //this.parts.search.addEventListener('keydown', this.keydown)
+                //this.parts.select.addEventListener('change', this.change)
+                //this.parts.toggler.addEventListener('shown.bs.dropdown', this.showAllOptions)
+                //this.parts.toggler.addEventListener('hide.bs.dropdown', this.dropdownHidden)
+            }
+            , value: {
+                set(input) {
+                    this.parts.progress.value = input;
+                }, get() {
+                    this.parts.progress.value
+                }
+            }
+            , text: {
+                set(input) {
+                    debugger
+                    this.parts.progress.textContent = input;
+                }, get() {
+                    debugger
+
+                    this.parts.progress.textContent
+                }
+            }
+        })
+    </script>
+    <div class="modal_content-loading">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="no-freeze-spinner">
+                <div id="no-freeze-spinner">
+                    <div>
+                        <i class="icon" style="justify-content: center; display: flex; align-items: center;">
+                            <img src="assets/favicon.png" class="ring_image" onerror="this.remove()"/>
+                            <span class="details" style="position: absolute; top: 3rem; width: 100%;">
+                                <progress part="progress" style="width: 100%; accent-color: var(--progress-color, green);" max="100" value="0" aria-label="Loading…">0%</progress>
+                            </span>
+                        </i> 
+                        <div></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</template>

@@ -5,6 +5,7 @@ xmlns:session="http://panax.io/session"
 xmlns:data="http://panax.io/data"
 xmlns:state="http://panax.io/state"
 xmlns:group="http://panax.io/state/group"
+xmlns:page="http://panax.io/state/page"
 xmlns:hidden="http://panax.io/state/hidden"
 xmlns:collapse="http://panax.io/state/collapse"
 xmlns:expand="http://panax.io/state/expand"
@@ -170,8 +171,7 @@ xmlns:debug="http://panax.io/debug"
 		table {
 			margin-right: 50px;
 			max-width: max-content;
-		}
-			]]>
+		}]]>
 		</style>
 		<style>
 			<![CDATA[
@@ -315,7 +315,10 @@ xmlns:debug="http://panax.io/debug"
 			</thead>
 			<xsl:apply-templates mode="datagrid:tbody" select="$groups[1]">
 				<xsl:with-param name="x-dimension" select="$x-dimensions"/>
-				<xsl:with-param name="y-dimension" select="$y-dimensions"/>
+				<xsl:with-param name="y-dimension" select="$y-dimensions[not(@page:index)]"/>
+			</xsl:apply-templates>
+			<xsl:apply-templates mode="datagrid:tbody" select="$y-dimensions[@page:index]">
+				<xsl:with-param name="x-dimension" select="$x-dimensions"/>
 			</xsl:apply-templates>
 			<tfoot>
 				<xsl:apply-templates mode="datagrid:footer-row" select=".">
@@ -421,6 +424,23 @@ xmlns:debug="http://panax.io/debug"
 				</xsl:apply-templates>
 			</tbody>
 		</xsl:if>
+	</xsl:template>
+
+	<xsl:template mode="datagrid:tbody" match="*[@page:index]">
+		<xsl:param name="x-dimension" select="node-expected"/>
+		<xsl:variable name="page-size" select="@page:size"/>
+		<tbody page-index="{@page:index}" page-size="{@page:size}">
+			<tr class="skeleton">
+				<td colspan="{count($x-dimension)}" style="text-align: left;">
+					página <xsl:value-of select="@page:index"/>
+				</td>
+			</tr>
+			<xsl:for-each select="(//@*)[position() &lt; $page-size]">
+				<tr class="skeleton">
+					<td colspan="{count($x-dimension)}" style="text-align: left;">&#160;</td>
+				</tr>
+			</xsl:for-each>
+		</tbody>
 	</xsl:template>
 
 	<xsl:template mode="datagrid:tbody" match="@group:*">
@@ -963,7 +983,7 @@ xmlns:debug="http://panax.io/debug"
 	<xsl:template mode="datagrid:tbody-header-cell" match="@*">
 		<th></th>
 	</xsl:template>
-	
+
 	<xsl:template mode="datagrid:tbody-header-cell" match="@*[key('total', name())]">
 		<xsl:param name="rows" select="node-expected"/>
 		<xsl:param name="data" select="@attributes-expected"/>

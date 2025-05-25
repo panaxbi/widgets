@@ -198,7 +198,7 @@ xo.listener.on(`beforeTransform?stylesheet.selectFirst("//comment()[starts-with(
     }
 })
 
-xo.listener.on(`beforeTransform::model[*/@filter:*]`, function ({ document }) {
+xo.listener.on(`filter`, function ({ document }) {
     for (let attr of this.select(`//@filter:*`)) {
         let rows_to_remove = attr.parentNode.select(`row[${attr.value.split("|").map(value => `not(@${attr.localName}="${value}")`).join(" and ")}]`)
         if (rows_to_remove.length == attr.parentNode.select(`row`).length) {

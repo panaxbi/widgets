@@ -8,6 +8,7 @@ function onGoogleLogin(response) {
         if (xo.site.seed == '#login') { window.location = '#' } else { xover.stores.seed.render() }
     }).catch((e) => {
         xover.session.id_token = undefined;
+        [...document.querySelectorAll(`script[src*="accounts.google.com"]`)].remove()
         return Promise.reject(e);
     })
 }

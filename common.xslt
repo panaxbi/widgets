@@ -101,33 +101,33 @@ xmlns="http://www.w3.org/1999/xhtml"
 	</xsl:template>
 
 	<xsl:key name="datatype" match="*/@datatype:*" use="concat(.,':',local-name())"/>
-	<xsl:template match="key('data_type', 'money')">
+	<xsl:template match="key('data_type', 'money')" priority="-4">
 		<xsl:call-template name="format">
 			<xsl:with-param name="value" select="."></xsl:with-param>
 		</xsl:call-template>
 	</xsl:template>
 
-	<xsl:template match="key('data_type', 'percent')">
+	<xsl:template match="key('data_type', 'percent')" priority="-4">
 		<xsl:call-template name="format-percent">
 			<xsl:with-param name="value" select="."></xsl:with-param>
 		</xsl:call-template>
 	</xsl:template>
 
-	<xsl:template match="key('data_type', 'number')">
+	<xsl:template match="key('data_type', 'number')" priority="-4">
 		<xsl:call-template name="format">
 			<xsl:with-param name="value" select="number(.)"></xsl:with-param>
 			<xsl:with-param name="mask">###,##0.00;-###,##0.00</xsl:with-param>
 		</xsl:call-template>
 	</xsl:template>
 
-	<xsl:template match="key('data_type', 'integer')">
+	<xsl:template match="key('data_type', 'integer')" priority="-4">
 		<xsl:call-template name="format">
 			<xsl:with-param name="value" select="number(.)"></xsl:with-param>
 			<xsl:with-param name="mask">###,##0;-###,##0</xsl:with-param>
 		</xsl:call-template>
 	</xsl:template>
 
-	<xsl:template match="key('data_type', 'date')">
+	<xsl:template match="key('data_type', 'date')" priority="-4">
 		<xsl:value-of select="substring(.,1,4)"/>
 		<xsl:text>-</xsl:text>
 		<xsl:value-of select="substring(.,5,2)"/>

@@ -43,8 +43,7 @@ xmlns:debug="http://panax.io/debug"
 	<xsl:key name="data:group" match="group:*/row/@desc" use="name(../..)"/>
 	<xsl:key name="data:group" match="/model/*[not(row)]/@state:record_count" use="'*'"/>
 
-	<xsl:key name="datagrid:caption" match="@dummy" use="generate-id(..)"/>
-
+	<xsl:key name="datagrid:caption" match="@dummy" use="../@xo:id"/>
 
 	<xsl:key name="x-dimension" match="node-expected/@*[namespace-uri()='']" use="name(..)"/>
 	<xsl:key name="y-dimension" match="node-expected/*" use="name(..)"/>
@@ -54,6 +53,7 @@ xmlns:debug="http://panax.io/debug"
 	<xsl:param name="state:groupBy">*</xsl:param>
 	<xsl:param name="state:collapse_all"></xsl:param>
 	<xsl:param name="state:hide_empty">false</xsl:param>
+	<xsl:param name="state:hide_suggested">false</xsl:param>
 
 	<xsl:key name="collapse:group" match="collapse:groups/row/@*[namespace-uri()='']" use="concat(name(),'::',.)"/>
 	<xsl:key name="expand:group" match="expand:groups/row/@*[namespace-uri()='']" use="concat(name(),'::',.)"/>
@@ -571,6 +571,16 @@ xmlns:debug="http://panax.io/debug"
 				</li>
 			</xsl:if>
 			<xsl:if test="//@group:*[1]">
+				<xsl:if test="$state:hide_suggested!=''">
+					<li>
+						<a class="dropdown-item" href="#" onclick="xo.state.hide_suggested = !xo.state.hide_suggested">
+							<xsl:choose>
+								<xsl:when test="$state:hide_suggested='true'">No ocultar todos campos sugeridos</xsl:when>
+								<xsl:otherwise>Ocultar campos sugeridos</xsl:otherwise>
+							</xsl:choose>
+						</a>
+					</li>
+				</xsl:if>
 				<li>
 					<a class="dropdown-item" href="#" onclick="xo.state.collapse_all = true">
 						<xsl:choose>
@@ -651,7 +661,7 @@ xmlns:debug="http://panax.io/debug"
 	</xsl:template>
 
 	<xsl:template mode="datagrid:caption" match="*">
-		<xsl:apply-templates mode="datagrid:caption" select="key('datagrid:caption', generate-id())"/>
+		<xsl:apply-templates mode="datagrid:caption" select="key('datagrid:caption', @xo:id)"/>
 	</xsl:template>
 
 	<xsl:template mode="datagrid:caption" match="@*">

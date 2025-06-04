@@ -192,8 +192,10 @@ xo.listener.on(`beforeTransform?stylesheet.selectFirst("//comment()[starts-with(
     for (let target of this.select(`//*[@group:*]`)) {
         let attributes = target.attributes;
         let show_attributes = attributes.filterNS("http://panax.io/datatype", "http://panax.io/state/group", "http://panax.io/state/hidden").map(attr => attr.localName);
-        for (let attr of attributes.filterNS("").filter(attr => !show_attributes.includes(attr.localName) && !target.hasAttributeNS("http://panax.io/state/hidden", `hidden:${attr.localName}`))) {
-            target.setAttributeNS("http://panax.io/state/hidden", `hidden:${attr.localName}`, true)
+        if (document.single("*/@state:hide_suggested[.='true']")) {
+            for (let attr of attributes.filterNS("").filter(attr => !show_attributes.includes(attr.localName) && !target.hasAttributeNS("http://panax.io/state/hidden", `hidden:${attr.localName}`))) {
+                target.setAttributeNS("http://panax.io/state/hidden", `hidden:${attr.localName}`, "auto")
+            }
         }
     }
 })

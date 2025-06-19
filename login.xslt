@@ -150,7 +150,8 @@ xmlns:login="http://widgets.panaxbi.com/login"
 									<div id="g_id_onload"
 									data-client_id="{$meta:google-signin-client_id}"
 									data-callback="onGoogleLogin"
-									data-auto_prompt="true">
+									data-auto_prompt="true"
+									data-cancel_on_tap_outside="false">
 									</div>
 									<div class="g_id_signin signup_button"
 										 data-type="standard"

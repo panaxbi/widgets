@@ -17,7 +17,7 @@ xmlns:login="http://widgets.panaxbi.com/login"
 	<xsl:param name="session:debug"/>
 
 	<xsl:param name="session:user_login"/>
-	<xsl:param name="session:status"/>
+	<xsl:param name="session:status">unauthorized</xsl:param>
 	<xsl:param name="session:connection_id"/>
 	<xsl:param name="js:year">new Date().getFullYear()</xsl:param>
 	<xsl:param name="js:secure"><![CDATA[location.protocol.indexOf('https')!=-1 || location.hostname=='localhost']]></xsl:param>
@@ -144,7 +144,7 @@ xmlns:login="http://widgets.panaxbi.com/login"
 						</xsl:if>
 						<xsl:apply-templates mode="login:button" select="."/>
 						<div class="container" style="height: 60px;">
-							<xsl:if test="$meta:google-signin-client_id!='' and $js:secure='true' and $session:status!='authorizing'">
+							<xsl:if test="$meta:google-signin-client_id!='' and $js:secure='true' and $session:status='unauthorized'">
 								<div class="container" xo-static="self::*" style="height: 60px;">
 									<!--<div class="g-signin2" data-onsuccess="onGoogleLogin" ></div>-->
 									<div id="g_id_onload"

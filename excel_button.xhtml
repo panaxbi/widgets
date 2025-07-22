@@ -1,0 +1,80 @@
+﻿<script>
+    let toExcel = (function (table, name) {
+        if (!table.nodeType) table = document.getElementById(table);
+        table = table.cloneNode(true);
+        [...table.querySelectorAll('.non_printable,input,select,textarea,button,svg,.dropdown')].forEach(el => el.remove());
+        let myBlob = new Blob(["\ufeff" + table.outerHTML], { type: 'application/vnd.ms-excel;charset=utf-8' });
+        let url = window.URL.createObjectURL(myBlob);
+        let a = document.createElement("a");
+        document.body.appendChild(a);
+        a.href = url;
+        a.download = name.replace(/^[^\d\w]/, '');
+        a.click();
+        setTimeout(function () { window.URL.revokeObjectURL(url); }, 0);
+    });
+
+    xover.listener.on('toExcel', async function (name = new Date().toISOString()) {
+        let table = this;
+        let progress = await xo.sources["loading.xslt"].render();
+        await xover.delay(500);
+        //if (this.Interval) window.clearInterval(this.Interval);
+        let _progress = 0;
+        let progress_bar = progress[0].querySelector('progress');
+        progress_bar.style.display = 'inline';
+
+        table = table.cloneNode(true);
+        table.querySelectorAll('del,.hidden,.non-printable').toArray().remove();
+        const hidden = [...document.querySelectorAll("colgroup col")].map(col => col.matches(".hidden"));
+        for (a of table.querySelectorAll('a')) {
+            a.replaceWith(a.createTextNode(a.selectFirst("text()[1]")))
+        }
+        let set_computed_background = function (cell) {
+            let border = cell.style.border;
+            let backgroundColor = cell.style.backgroundColor;
+            let color = cell.style.color;
+            let styleSheets = document.styleSheets;
+            for (let styleSheet of [...styleSheets]) {
+                try {
+                    for (let rule of [...styleSheet.rules].filter(rule => rule.selectorText && (rule.style.border || rule.style.backgroundColor || rule.style.color) && cell.matches(rule.selectorText))) {
+                        if (!border && rule.style.border) {
+                            cell.style.border = rule.style.border;
+                        }
+                        if (!backgroundColor && rule.style.backgroundColor) {
+                            cell.style.backgroundColor = rule.style.backgroundColor;
+                        }
+                        if (!color && rule.style.color) {
+                            cell.style.color = rule.style.color;
+                        }
+                    }
+                } catch (e) {
+                    console.warn(e)
+                }
+            }
+        }
+        let rows = table.getElementsByTagName("tr");
+        let r = 0;
+        for (let row of rows) {
+            ++r;
+            _progress = r / rows.length * 100;
+            for (let [ix, el] of Object.entries(row.querySelectorAll("td,th"))) {
+                if (hidden[ix]) {
+                    el.remove();
+                    continue;
+                }
+                el => set_computed_background(el);
+            }
+            if (r % (rows.length / 10) == 0) {
+                progress_bar.value = _progress;
+                await xover.delay(500);
+            }
+        }
+        toExcel(table, name.split("?")[0])
+        progress.remove();
+        if (this.Interval) window.clearInterval(this.Interval);
+    })
+</script>
+<template shadowrootmode="open" role="button" class="btn">
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-file-earmark-spreadsheet" viewBox="0 0 16 16" onclick="try { document.querySelector('table').dispatch('toExcel', xover.stores.seed.tag) } catch (e) { return Promise.reject('No se pudo crear hoja de cálculo') }">
+        <path d="M14 14V4.5L9.5 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2M9.5 3A1.5 1.5 0 0 0 11 4.5h2V9H3V2a1 1 0 0 1 1-1h5.5zM3 12v-2h2v2zm0 1h2v2H4a1 1 0 0 1-1-1zm3 2v-2h3v2zm4 0v-2h3v1a1 1 0 0 1-1 1zm3-3h-3v-2h3zm-7 0v-2h3v2z" />
+    </svg>
+</template>

@@ -464,23 +464,27 @@ xmlns:debug="http://panax.io/debug"
 	</xsl:template>
 
 	<xsl:template mode="datagrid:tbody" match="@state:record_count">
-		<tr>
-			<td colspan="100" style="text-align: left; padding-inline: 5rem;">
-				<button class="btn btn-success text-nowrap" onclick="mostrarRegistros.call(this)" style="max-height: 38px; align-self: end;">
-					Mostrar los <xsl:value-of select="."/> resultados
-				</button>
-			</td>
-		</tr>
+		<tbody>
+			<tr>
+				<td colspan="100" style="text-align: left; padding-inline: 5rem;">
+					<button class="btn btn-success text-nowrap" onclick="mostrarRegistros.call(this)" style="max-height: 38px; align-self: end;">
+						Mostrar los <xsl:value-of select="."/> resultados
+					</button>
+				</td>
+			</tr>
+		</tbody>
 	</xsl:template>
 
 	<xsl:template mode="datagrid:tbody" match="@state:record_count[.=0]">
-		<tr>
-			<td colspan="100" style="text-align: left; padding-inline: 5rem;">
-				<h5 class="text-danger">
-					No se encontraron resultados para su consulta
-				</h5>
-			</td>
-		</tr>
+		<tbody>
+			<tr>
+				<td colspan="100" style="text-align: left; padding-inline: 5rem;">
+					<h5 class="text-danger">
+						No se encontraron resultados para su consulta
+					</h5>
+				</td>
+			</tr>
+		</tbody>
 	</xsl:template>
 
 	<xsl:template mode="datagrid:tbody-header" match="*|@*"/>

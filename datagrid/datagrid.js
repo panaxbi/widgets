@@ -367,3 +367,14 @@ async function generateExcelFile(table, name) {
 xover.listener.on('click::.datagrid .sortable', function () {
     sortRows.call(this, this.closest('td,th'))
 })
+
+xo.listener.on(`change?srcElement.matches('[type=checkbox]')::@hidden:*`, function ({ value: checked, srcElement }) {
+    this.inert = true;
+    checked = !eval(checked);
+    let col = srcElement.closest('table').querySelector(`colgroup col[xo-slot="${this.localName}"]`);
+    if (checked) {
+        col.classList.remove('hidden')
+    } else {
+        col.classList.add('hidden')
+    }
+})

@@ -200,6 +200,30 @@ xo.listener.on(`beforeTransform?stylesheet.selectFirst("//comment()[starts-with(
     }
 })
 
+xo.listener.on(`change::@filter:*`, function ({ document, srcElement }) {
+    this.inert = true;
+    srcElement.closest('table').dispatch('filter');
+})
+
+xo.listener.on(`filter::html:table`, function ({ document }) {
+    let table = this
+    table.original = table.original || this.cloneNode(true);
+    let scope = this.scope;
+    let filters = scope.select(`@filter:*`);
+    if (!filters.length) {
+        table.replaceWith(table.original);
+        delete table.original;
+    } else {
+        for (let attr of filters) {
+            let values = attr.value.split("|");
+            let cells = table.select(`tbody/tr/td[@xo-slot="${attr.localName}" and (${values.map(value => `.//text()="${value}"`).join(" or ")})]`);
+            cells.forEach(cell => cell.classList.add('bg-info'));
+            table.select(`tbody/tr[not(td[@xo-slot="${attr.localName}" and (${values.map(value => `.//text()="${value}"`).join(" or ")})])]`).remove();
+        }
+    }
+    table.querySelectorAll('tfoot [xo-stylesheet]').forEach(section => section.render())
+})
+
 xo.listener.on(`filter`, function ({ document }) {
     for (let attr of this.select(`//@filter:*`)) {
         let rows_to_remove = attr.parentNode.select(`row[${attr.value.split("|").map(value => `not(@${attr.localName}="${value}")`).join(" and ")}]`)
@@ -211,9 +235,30 @@ xo.listener.on(`filter`, function ({ document }) {
     }
 })
 
-xo.listener.on(`beforeTransform::model[*/@filter:*]`, function ({ document }) {
+xover.listener.on('click::.filterable', function () {
+    if (!selection.cells.length || selection.cells.concat(this).includes(this.closest('td,.cell'))) {
+        let filters = selection.cells.concat(this).map(cell => cell.scope).reduce((result, scope) => { result[scope.localName] = (result[scope.localName] || []); result[scope.localName].push(scope.value); return result }, {});
+        let scope = this.scope;
+        let model = scope.closest("model");
+        let target = scope.selectSingleNode(`ancestor::*[parent::model]`);
+        if (target.hasAttributeNS('http://panax.io/state/filter', `${scope.localName}`)) {
+            target.removeAttributeNS('http://panax.io/state/filter', `${scope.localName}`)
+            delete filters[scope.localName]
+        }
+
+        for (let key of Object.keys(filters)) {
+            target.setAttributeNS('http://panax.io/state/filter', `filter:${key}`, filters[key].distinct().join("|"))
+        }
+    }
+})
+
+xo.listener.on(`beforeTransform::model[*/@filter:*]`, function () {
     this.dispatch('filter')
 }, { priority: 998 })
+
+xo.listener.on(`beforeTransform?stylesheet.href*=datagrid-footer.xslt`, function () {
+    this.dispatch('filter')
+})
 
 xo.listener.on(`beforeTransform::model[*/@group:*]`, function ({ document }) {
     for (let group of this.select(`//@group:*`)) {

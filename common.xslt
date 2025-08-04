@@ -21,14 +21,6 @@ xmlns="http://www.w3.org/1999/xhtml"
 		background:<xsl:value-of select="ancestor-or-self::*/@color"/> !important; color: white;
 	</xsl:template>
 
-	<xsl:template match="@*" priority="-5">
-		<xsl:param name="separator">, </xsl:param>
-		<xsl:if test="position()&gt;1">
-			<xsl:value-of select="$separator"/>
-		</xsl:if>
-		<xsl:value-of select="."/>
-	</xsl:template>
-
 	<xsl:template mode="value" match="@status">
 		<xsl:value-of select="concat(translate(substring(.,1,1),$lowercase,$uppercase), substring(.,2))"/>
 	</xsl:template>
@@ -83,7 +75,6 @@ xmlns="http://www.w3.org/1999/xhtml"
 		</xsl:variable>
 		<button type="button" class="btn btn-outline-secondary {$style}" xo-slot="state:checked" onclick="scope.toggle('true');" style="white-space: nowrap;">
 			<xsl:choose>
-				<xsl:when test="//model/@env:store='#razones_financieras'"></xsl:when>
 				<xsl:when test="$active">
 					<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-x-square" viewBox="0 0 16 16" style="margin-right: 5pt" onclick="scope.remove(); event.stopPropagation(); return false" xo-slot="state:checked">
 						<path d="M14 1a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h12zM2 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H2z"/>
@@ -101,6 +92,14 @@ xmlns="http://www.w3.org/1999/xhtml"
 	</xsl:template>
 
 	<xsl:key name="datatype" match="*/@datatype:*" use="concat(.,':',local-name())"/>
+	<xsl:template match="@*" priority="-4">
+		<xsl:param name="separator">, </xsl:param>
+		<xsl:if test="position()&gt;1">
+			<xsl:value-of select="$separator"/>
+		</xsl:if>
+		<xsl:value-of select="."/>
+	</xsl:template>
+
 	<xsl:template match="key('data_type', 'money')" priority="-4">
 		<xsl:call-template name="format">
 			<xsl:with-param name="value" select="."></xsl:with-param>

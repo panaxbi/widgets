@@ -207,19 +207,22 @@ xo.listener.on(`change::@filter:*`, function ({ document, srcElement }) {
 
 xo.listener.on(`filter::html:table`, function ({ document }) {
     let table = this
-    table.original = table.original || this.cloneNode(true);
     let scope = this.scope;
     let filters = scope.select(`@filter:*`);
-    if (!filters.length) {
-        table.replaceWith(table.original);
-        delete table.original;
-    } else {
+    if (filters.length) {
         for (let attr of filters) {
             let values = attr.value.split("|");
             let cells = table.select(`tbody/tr/td[@xo-slot="${attr.localName}" and (${values.map(value => `.//text()="${value}"`).join(" or ")})]`);
             cells.forEach(cell => cell.classList.add('bg-info'));
             table.select(`tbody/tr[not(td[@xo-slot="${attr.localName}" and (${values.map(value => `.//text()="${value}"`).join(" or ")})])]`).remove();
         }
+    } else if (table.original) {
+        table.replaceWith(table.original);
+        delete table.original;
+    } else {
+        table.section.render().then(() => {
+            table.original = table.original || this.cloneNode(true);
+        })
     }
     table.querySelectorAll('tfoot [xo-stylesheet]').forEach(section => section.render())
 })

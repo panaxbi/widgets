@@ -22,6 +22,7 @@ xmlns:debug="http://panax.io/debug"
 >
 	<xsl:import href="../functions.xslt"/>
 	<xsl:import href="../common.xslt"/>
+	<xsl:output method="html" /><!-- helps in normalizing groups -->
 	<xsl:key name="state" match="node-expected" use="'hidden'"/>
 
 	<xsl:key name="state:hidden" match="@*[namespace-uri()!='' and namespace-uri()!='http://panax.io/state/group']" use="name()"/>

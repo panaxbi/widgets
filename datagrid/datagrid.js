@@ -1,4 +1,5 @@
-xover.listener.on(`render?stylesheet.selectFirst("//comment()[starts-with(.,'ack:imported-from')][contains(.,'datagrid.xslt')]")`, function () {
+xo.listener.on('mousemove::table.datagrid thead th', function () {
+    const table = this.closest('table')
     let self = this;
     window.document.dragged_el = window.document.dragged_el || undefined;
     let draggedColIndex, targetColIndex, target;
@@ -23,7 +24,7 @@ xover.listener.on(`render?stylesheet.selectFirst("//comment()[starts-with(.,'ack
         arrow.style.display = 'none';
     }
 
-    for (let tbody of [...document.querySelectorAll('table tbody')]) {
+    for (let tbody of [...table.querySelectorAll('table tbody')]) {
         tbody.dragover_handler = tbody.dragover_handler || function (e) {
             e.preventDefault();
             /*
@@ -49,7 +50,7 @@ xover.listener.on(`render?stylesheet.selectFirst("//comment()[starts-with(.,'ack
         tbody.addEventListener('drop', tbody.drop_handler);
     }
 
-    document.querySelectorAll('[draggable="true"]').forEach((th, index) => {
+    table.querySelectorAll('[draggable="true"]').forEach((th, index) => {
         th.dragstart_handler = th.dragstart_handler || function (e) {
             window.document.dragged_el = this;
             //console.log('dragstart', window.document.dragged_el)
@@ -116,7 +117,6 @@ xover.listener.on(`render?stylesheet.selectFirst("//comment()[starts-with(.,'ack
     });
 
     function moveColumn(fromIndex, toIndex) {
-        const table = document.querySelector('table');
         const rows = table.rows;
         for (let row of rows) {
             if (row.classList.contains("header")) continue;
@@ -130,9 +130,9 @@ xover.listener.on(`render?stylesheet.selectFirst("//comment()[starts-with(.,'ack
     }
 })
 
-xover.listener.on('transform', function () {
-    this.select(`//table//text()[starts-with(.,'-$')]`).forEach(text => text.parentNode.style.color = 'red');
-    for (let caption of this.querySelectorAll(`.datagrid caption`)) {
+xover.listener.on('transform', function ({ result }) {
+    result.select(`//table//text()[starts-with(.,'-$')]`).forEach(text => text.parentNode.style.color = 'red');
+    for (let caption of result.querySelectorAll(`.datagrid caption`)) {
         let textContent = ((caption.textContent || '').match(/\d{4}-\d{2}-\d{2}T?\d{2}:\d{2}:\d{2}.\d+/g) || []).pop();
         if (!isValidDate(textContent)) continue;
         if (datediff('minute', new Date(textContent)) > 90) {
@@ -205,24 +205,25 @@ xo.listener.on(`change::@filter:*`, function ({ document, srcElement }) {
     srcElement.closest('table').dispatch('filter');
 })
 
-xo.listener.on(`filter::html:table`, function ({ document }) {
+xo.listener.on(`filter::html:table`, async function ({ document }) {
     let table = this
     let scope = this.scope;
     let filters = scope.select(`@filter:*`);
+    table.querySelectorAll('.bg-info').forEach(el => el.classList.remove('bg-info'));
+    if (table.original) {
+        table.replaceWith(table.original);
+        table = table.original;
+    } 
     if (filters.length) {
+        table.original = table.original || table.cloneNode(true);
         for (let attr of filters) {
             let values = attr.value.split("|");
             let cells = table.select(`tbody/tr/td[@xo-slot="${attr.localName}" and (${values.map(value => `.//text()="${value}"`).join(" or ")})]`);
             cells.forEach(cell => cell.classList.add('bg-info'));
             table.select(`tbody/tr[not(td[@xo-slot="${attr.localName}" and (${values.map(value => `.//text()="${value}"`).join(" or ")})])]`).remove();
         }
-    } else if (table.original) {
-        table.replaceWith(table.original);
-        delete table.original;
-    } else {
-        table.section.render().then(() => {
-            table.original = table.original || this.cloneNode(true);
-        })
+        table.querySelectorAll('.selected').forEach(cell => cell.classList.remove('selected', 'selection-begin', 'selection-end'))
+
     }
     table.querySelectorAll('tfoot [xo-stylesheet]').forEach(section => section.render())
 })
@@ -238,7 +239,7 @@ xo.listener.on(`filter`, function ({ document }) {
     }
 })
 
-xover.listener.on('click::.filterable', function () {
+xover.listener.on('click::.datagrid .filterable', function () {
     if (!selection.cells.length || selection.cells.concat(this).includes(this.closest('td,.cell'))) {
         let filters = selection.cells.concat(this).map(cell => cell.scope).reduce((result, scope) => { result[scope.localName] = (result[scope.localName] || []); result[scope.localName].push(scope.value); return result }, {});
         let scope = this.scope;
@@ -255,9 +256,15 @@ xover.listener.on('click::.filterable', function () {
     }
 })
 
-xo.listener.on(`beforeTransform::model[*/@filter:*]`, function () {
-    this.dispatch('filter')
+xo.listener.on(`transform::*[.//@filter:*]`, function ({ result }) {
+    let table = result.querySelector('table');
+    if (!table) return;
+    table.dispatch('filter');
 }, { priority: 998 })
+
+//xo.listener.on(`beforeTransform::model[*/@filter:*]`, function () {
+//    this.dispatch('filter')
+//}, { priority: 998 })
 
 xo.listener.on(`beforeTransform?stylesheet.href*=datagrid-footer.xslt`, function () {
     this.dispatch('filter')

@@ -67,6 +67,11 @@ xmlns:debug="http://panax.io/debug"
 			<![CDATA[
 		table .dropdown-item.active, .dropdown-item:active { background-color: white; }
 		
+		.cell.filtered {
+			--bs-bg-opacity: 1;
+			background-color: rgba(var(--bs-info-rgb), var(--bs-bg-opacity)) !important;
+		}
+		
 		table colgroup col.hidden {
 			width: 0 !important;
 			visibility: collapse;
@@ -707,7 +712,7 @@ xmlns:debug="http://panax.io/debug"
 		<xsl:param name="data" select="$row/@*"/>
 		<xsl:variable name="cell" select="$row/@*[name()=local-name(current())]"/>
 		<xsl:variable name="text-filter">
-			<xsl:if test="key('data:filter',local-name())">bg-info</xsl:if>
+			<xsl:if test="key('data:filter',local-name())">filtered</xsl:if>
 		</xsl:variable>
 		<xsl:variable name="classes">
 			<xsl:apply-templates mode="datagrid:cell-class" select="."/>

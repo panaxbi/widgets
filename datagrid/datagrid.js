@@ -230,9 +230,12 @@ xo.listener.on(`datagrid:filter::html:table`, async function ({ document }) {
         table.original = table.original || !table.querySelector('.filtered') && table.cloneNode(true) || undefined;
         for (let attr of filters) {
             let values = attr.value.split("|");
-            let cells = table.select(`tbody/tr/td[@xo-slot="${attr.localName}" and (${values.map(value => `.//text()="${value}"`).join(" or ")})]`);
+            let cells = table.select(`tbody/tr/td[@xo-slot="${attr.localName}" and (${values.map(value => `@cell-value="${value}"`).join(" or ")})]`);
+            if (!cells.length) {
+                continue;
+            }
             cells.forEach(cell => cell.classList.add('filtered'));
-            table.select(`tbody/tr[not(td[@xo-slot="${attr.localName}" and (${values.map(value => `.//text()="${value}"`).join(" or ")})])]`).filter(el => !el.matches(`.header`)).remove();
+            table.select(`tbody/tr[not(td[@xo-slot="${attr.localName}" and (${values.map(value => `@cell-value="${value}"`).join(" or ")})])]`).filter(el => !el.matches(`.header`)).remove();
             table.querySelectorAll(`tbody.filtered`).forEach(tbody => tbody.classList.remove('filtered'))
             for (let tbody of [...table.querySelectorAll(`tbody:has(.filtered)`)]) {
                 let level = [...(tbody.querySelector('tr.header') || {}).classList || []].filter(class_name => class_name.indexOf('group-level-') == 0).join(',').replace('group-level-', '');

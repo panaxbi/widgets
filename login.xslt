@@ -25,6 +25,7 @@ xmlns:login="http://widgets.panaxbi.com/login"
 	<xsl:param name="site:location-host"/>
 	<xsl:param name="site:location-pathname"/>
 	<xsl:param name="meta:google-signin-client_id"/>
+	<xsl:param name="meta:microsoft-signin-client_id"/>
 
 	<xsl:template match="/" priority="-1">
 		<xsl:apply-templates mode="login:widget"/>
@@ -32,11 +33,6 @@ xmlns:login="http://widgets.panaxbi.com/login"
 
 	<xsl:template match="*" mode="login:widget">
 		<section class="login" xo:use-attribute-sets="login:widget">
-			<xsl:if test="$meta:google-signin-client_id!='' and $js:secure='true'">
-				<link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet" type="text/css"/>
-				<script src="https://accounts.google.com/gsi/client" async="" defer=""></script>
-				<!--<script src="https://apis.google.com/js/platform.js" async="" defer=""></script>-->
-			</xsl:if>
 			<style>
 				<![CDATA[
 .login {
@@ -51,9 +47,18 @@ xmlns:login="http://widgets.panaxbi.com/login"
 	justify-content: center;
 	padding-top: 40px;
 	padding-bottom: 40px;
-	background-color: #f5f5f5;
+	background-color: var(--login-background,#f5f5f5);
+    background-image: url(images/background.jpg);
+    background-repeat: no-repeat;
+    background-size: cover;
 	height: 100vh;
 	width: 100vw;
+}
+
+.login form {
+    gap: 1rem;
+    display: flex;
+    flex-direction: column;
 }
 
 .form-signin {
@@ -99,6 +104,12 @@ xmlns:login="http://widgets.panaxbi.com/login"
 	max-height: 25vh;
 	max-width: 25vw;
 }
+
+div.container:has(div.g_id_signin.signup_button) {
+    justify-content: center;
+    position: relative;
+    display: flex;
+}
 			]]>
 			</style>
 			<script src="login.js" fetchpriority="high"/>
@@ -107,7 +118,9 @@ xmlns:login="http://widgets.panaxbi.com/login"
 					<xsl:attribute name="onsubmit"></xsl:attribute>
 					<xsl:attribute name="action">#</xsl:attribute>
 				</xsl:if>
-				<img id="logo" src="./assets/logo.png" alt="" class="mx-auto" style="view-transition-name: logo;"/>
+				<img id="logo" src="./assets/logo.png" alt="" class="mx-auto" style="view-transition-name: logo;" xo:use-attribute-sets="login:image-attributes">
+					<xsl:apply-templates mode="login:image-attributes" select="."/>
+				</img>
 				<h1 class="h3 mb-3 font-weight-normal mx-auto">Bienvenido</h1>
 				<xsl:choose>
 					<xsl:when test="$meta:google-signin-client_id!='' and $js:secure!='true'">
@@ -124,7 +137,7 @@ xmlns:login="http://widgets.panaxbi.com/login"
 					<xsl:otherwise>
 						<!--<label for="username" class="sr-only">Username</label>-->
 						<input type="text" id="username" class="form-control" placeholder="Username" autocomplete="username" required="" autofocus="" oninvalid="this.setCustomValidity('Escriba su usuario')" oninput="this.setCustomValidity('')" value="{$session:user_login}" xo-slot="username">
-							<xsl:if test="$meta:google-signin-client_id!='' and not($session:debug='true')">
+							<xsl:if test="(key('login-button','microsoft') or key('login-button','google')) and not($session:debug='true')">
 								<xsl:attribute name="disabled"/>
 							</xsl:if>
 							<xsl:if test="@username">
@@ -133,58 +146,25 @@ xmlns:login="http://widgets.panaxbi.com/login"
 								</xsl:attribute>
 							</xsl:if>
 						</input>
-						<xsl:if test="$meta:google-signin-client_id=''">
-							<label for="password" class="sr-only">Password</label>
-							<input type="password" id="password" class="form-control" placeholder="Password" autocomplete="current-password" required="" oninvalid="this.setCustomValidity('Escriba su contraseña')" oninput="this.setCustomValidity('')">
-								<xsl:if test="$session:status='authorizing' or $session:status='authorized'">
-									<xsl:attribute name="style">visibility:hidden;</xsl:attribute>
-									<xsl:attribute name="readonly"></xsl:attribute>
-								</xsl:if>
-							</input>
-						</xsl:if>
 						<xsl:apply-templates mode="login:button" select="."/>
-						<div class="container" style="height: 60px;">
-							<xsl:if test="$meta:google-signin-client_id!='' and $js:secure='true' and $session:status='unauthorized'">
-								<div class="container" xo-static="self::*" style="height: 60px;">
-									<!--<div class="g-signin2" data-onsuccess="onGoogleLogin" ></div>-->
-									<div id="g_id_onload"
-									data-client_id="{$meta:google-signin-client_id}"
-									data-callback="onGoogleLogin"
-									data-auto_prompt="true"
-									data-cancel_on_tap_outside="false">
-									</div>
-									<div class="g_id_signin signup_button"
-										 data-type="standard"
-										 data-size="large"
-										 data-theme="outline"
-										 data-text="sign_in_with"
-										 data-shape="rectangular"
-										 data-logo_alignment="left">
-									</div>
-								</div>
-							</xsl:if>
-						</div>
 						<p class="mt-5 mb-3 text-muted mx-auto">
-							©Panax 2022 - <xsl:value-of select="$js:year"/>
+							©Panax <xsl:value-of select="$js:year"/>
 						</p>
 					</xsl:otherwise>
 				</xsl:choose>
 			</form>
-			<!--<script>
-				document.getElementById("username").addEventListener("animationstart", function() {
-				// Username autofilled, do something
-				console.log("Username autofilled");
-				});
-
-				document.getElementById("password").addEventListener("animationstart", function() {
-				// Password autofilled, do something
-				console.log("Password autofilled");
-				});
-			</script>-->
 		</section>
 	</xsl:template>
 
+	<xsl:key name="login-button" match="*[/*/@meta:google-signin-client_id]" use="'google'"/>
 	<xsl:template mode="login:button" match="*|@*">
+		<label for="password" class="sr-only">Password</label>
+		<input type="password" id="password" class="form-control" placeholder="Password" autocomplete="current-password" required="" oninvalid="this.setCustomValidity('Escriba su contraseña')" oninput="this.setCustomValidity('')">
+			<xsl:if test="$session:status='authorizing' or $session:status='authorized'">
+				<xsl:attribute name="style">visibility:hidden;</xsl:attribute>
+				<xsl:attribute name="readonly"></xsl:attribute>
+			</xsl:if>
+		</input>
 		<button class="btn btn-lg btn-primary btn-block color-orange" type="submit">
 			<xsl:choose>
 				<xsl:when test="$session:status='authorized'">
@@ -206,5 +186,57 @@ xmlns:login="http://widgets.panaxbi.com/login"
 				<xsl:otherwise>Ingresar</xsl:otherwise>
 			</xsl:choose>
 		</button>
+	</xsl:template>
+
+	<xsl:key name="login-button" match="*[/*/@meta:microsoft-signin-client_id]" use="'microsoft'"/>
+	<xsl:template mode="login:button" match="key('login-button','microsoft')">
+		<script src="https://alcdn.msauth.net/browser/2.14.0/js/msal-browser.min.js"></script>
+		<script><![CDATA[document.getElementById('ms-signin').addEventListener('click', login_function);]]></script>
+		<button type="button" class="btn_login" id="ms-signin">
+			<xsl:choose>
+				<xsl:when test="$session:status='authorized'">
+					<xsl:attribute name="type">button</xsl:attribute>
+					<xsl:attribute name="onclick">
+						<xsl:choose>
+							<xsl:when test="$site:seed = '#login'">window.location='#'</xsl:when>
+							<xsl:otherwise>xo.stores.seed.render()</xsl:otherwise>
+						</xsl:choose>
+					</xsl:attribute>
+					Continuar
+				</xsl:when>
+				<xsl:when test="$meta:google-signin-client_id!=''">
+					<xsl:attribute name="style">visibility:hidden !important;</xsl:attribute>
+				</xsl:when>
+				<xsl:when test="$session:status='authorizing'">
+					Autorizando... <i class="fas fa-spinner fa-spin"></i>
+				</xsl:when>
+				<xsl:otherwise>Ingresar con Microsoft</xsl:otherwise>
+			</xsl:choose>
+		</button>
+	</xsl:template>
+
+	<xsl:template mode="login:button" match="key('login-button','google')">
+		<link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet" type="text/css"/>
+		<script src="https://accounts.google.com/gsi/client" async="" defer=""></script>
+		<!--<script src="https://apis.google.com/js/platform.js" async="" defer=""></script>-->
+		<xsl:if test="$meta:google-signin-client_id!='' and $js:secure='true' and $session:status!='authorizing'">
+			<div class="container" xo-static="self::*" style="height: 60px;">
+				<!--<div class="g-signin2" data-onsuccess="onGoogleLogin" ></div>-->
+				<div id="g_id_onload"
+				data-client_id="{$meta:google-signin-client_id}"
+				data-callback="onGoogleLogin"
+				data-auto_prompt="true"
+				data-cancel_on_tap_outside="false">
+				</div>
+				<div class="g_id_signin signup_button"
+					 data-type="standard"
+					 data-size="large"
+					 data-theme="outline"
+					 data-text="sign_in_with"
+					 data-shape="rectangular"
+					 data-logo_alignment="left">
+				</div>
+			</div>
+		</xsl:if>
 	</xsl:template>
 </xsl:stylesheet>

@@ -718,7 +718,7 @@ xmlns:debug="http://panax.io/debug"
 			<xsl:apply-templates mode="datagrid:cell-class" select="."/>
 			<xsl:apply-templates mode="datagrid:cell-class-by-type" select="."/>
 		</xsl:variable>
-		<td xo-scope="inherit" xo-slot="{local-name()}" class="text-nowrap {$text-filter} {$classes} cell domain-{local-name()}">
+		<td xo-scope="inherit" xo-slot="{local-name()}" cell-value="{$cell}" class="text-nowrap {$text-filter} {$classes} cell domain-{local-name()}">
 			<xsl:apply-templates mode="datagrid:cell-content" select="$cell"/>
 		</td>
 	</xsl:template>

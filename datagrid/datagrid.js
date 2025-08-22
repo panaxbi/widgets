@@ -121,7 +121,7 @@ xo.listener.on('mousemove::table.datagrid thead th', function () {
 
     function moveColumn({ draggedColIndex: fromIndex, draggedCol: from }, { targetColIndex: toIndex, targetCol: to }, ) {
         const rows = table.rows;
-        if (from.nextElementSibling === to) return;
+        if (!from || from.nextElementSibling === to) return;
         for (let row of rows) {
             if (row.classList.contains("header")) continue;
             const cells = row.cells;
@@ -221,7 +221,7 @@ xo.listener.on(`datagrid:filter::html:table`, async function ({ document }) {
     let table = this
     let scope = this.scope;
     let filters = scope.select(`@filter:*`);
-    table.querySelectorAll('.filtered').forEach(el => el.classList.remove('filtered'));
+    table.querySelectorAll('td.filtered').forEach(el => el.classList.remove('filtered'));
     if (table.original) {
         table.replaceWith(table.original);
         table = table.original;
@@ -248,7 +248,7 @@ xo.listener.on(`datagrid:filter::html:table`, async function ({ document }) {
                     preceding = preceding.previousElementSibling;
                 }
             }
-            [...table.querySelectorAll(`tbody:not(.filtered):not(:has(tr td))`)].remove();
+            [...table.querySelectorAll(`tbody:not(.filtered):not(:has(.filtered))`)].remove();
         }
         table.querySelectorAll('.selected').forEach(cell => cell.classList.remove('selected', 'selection-begin', 'selection-end'))
 
@@ -290,9 +290,9 @@ xo.listener.on(`transform::*[.//@filter:*]`, function ({ result }) {
     table.dispatch('datagrid:filter');
 }, { priority: 998 })
 
-//xo.listener.on(`beforeTransform::model[*/@filter:*]`, function () {
-//    this.dispatch('datagrid:filter')
-//}, { priority: 998 })
+xo.listener.on(`beforeTransform::model[*/@filter:*]`, function () {
+    this.dispatch('datagrid:filter')
+}, { priority: 998 })
 
 xo.listener.on(`beforeTransform?stylesheet.href*=datagrid-footer.xslt`, function () {
     this.dispatch('datagrid:filter')
@@ -354,7 +354,7 @@ collapse_or_expand = function (action = 'collapse') {
     return { matches, group_node, row };
 }
 
-xo.listener.on('collapse', function () {
+xo.listener.on('collapse', 'datagrid:collapse', function () {
     event.stopPropagation()
     let { matches, group_node, row } = collapse_or_expand.call(this, 'collapse');
     if (!matches.length) {
@@ -362,7 +362,7 @@ xo.listener.on('collapse', function () {
     }
 })
 
-xo.listener.on('expand', function () {
+xo.listener.on('expand', 'datagrid:expand', function () {
     event.stopPropagation()
     let { matches } = collapse_or_expand.call(this, 'collapse');
     for (let match of matches) {

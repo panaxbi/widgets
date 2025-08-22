@@ -942,10 +942,12 @@ xmlns:debug="http://panax.io/debug"
 		<xsl:param name="parent-groups" select="node-expected"/>
 		<xsl:param name="rows" select="key('data',.)"/>
 		<xsl:param name="collapsed" select="false()"/>
-
+		<xsl:variable name="text-filter">
+			<xsl:if test="$rows/@*[key('data:filter',local-name())]">filtered</xsl:if>
+		</xsl:variable>
 		<xsl:variable name="current" select="current()"/>
 		<xsl:variable name="collapse:match" select="key('collapse:group', concat(local-name(current()/../..),'::',.))"/>
-		<tr class="header sticky group-level-{count($parent-groups) + 1}">
+		<tr class="header sticky group-level-{count($parent-groups) + 1} {$text-filter}">
 			<th style="text-align: center;">
 				&#160;
 			</th>

@@ -56,6 +56,7 @@ xo.listener.on('mousemove::table.datagrid thead th', function () {
             //console.log('dragstart', window.document.dragged_el)
             draggedColIndex = this.cellIndex || [...this.parentNode.children].indexOf(this);
             draggedCol = this.closest('[xo-slot]');
+            console.log(draggedCol)
             createArrow();
         }
         th.removeEventListener('dragstart', th.dragstart_handler);
@@ -120,16 +121,22 @@ xo.listener.on('mousemove::table.datagrid thead th', function () {
     });
 
     function moveColumn({ draggedColIndex: fromIndex, draggedCol: from }, { targetColIndex: toIndex, targetCol: to }, ) {
-        const rows = table.rows;
         if (!from || from.nextElementSibling === to) return;
+        const rows = table.rows;
+        let [from_name, from_schema = null] = from.getAttribute("xo-slot").split(":").reverse();
+        let [to_name, to_schema = null] = to.getAttribute("xo-slot").split(":").reverse();
         for (let row of rows) {
             if (row.classList.contains("header")) continue;
             const cells = row.cells;
-            const fromCell = from && row.querySelector(`td[xo-slot="${from.getAttribute("xo-slot")}"],td[xo-slot="group:${from.getAttribute("xo-slot")}"],th[xo-slot="${from.getAttribute("xo-slot")}"],th[xo-slot="group:${from.getAttribute("xo-slot")}"]`) || null;//cells[fromIndex];
-            const toCell = to && row.querySelector(`td[xo-slot="${to.getAttribute("xo-slot")}"],td[xo-slot="group:${to.getAttribute("xo-slot")}"],th[xo-slot="${to.getAttribute("xo-slot")}"],th[xo-slot="group:${to.getAttribute("xo-slot")}"]`) || null;//cells[toIndex];
+            const fromCell = from && row.querySelector(`td[xo-slot="${from.getAttribute("xo-slot")}"],td[xo-slot="${from_schema}:${from_name}"],th[xo-slot="${from_name}"],th[xo-slot="${from_schema}:${from_name}"]`) || null;//cells[fromIndex];
+            const toCell = to && row.querySelector(`td[xo-slot="${to_name}"],td[xo-slot="${to_schema}:${to_name}"],th[xo-slot="${to_name}"],th[xo-slot="${to_schema}:${to_name}"]`) || null;//cells[toIndex];
             try {
                 fromCell.parentNode.insertBefore(fromCell, toCell)
             } catch (e) { }
+        }
+        if (from_schema && !to_schema && to.closest('thead')) {
+            from.dispatch('ungroup')
+            from.setAttribute("xo-slot", from_name)
         }
     }
 })
@@ -268,7 +275,7 @@ xo.listener.on(`datagrid:filter`, function ({ document }) {
 })
 
 xover.listener.on('click::.datagrid .filterable', function () {
-    if (!selection.cells.length || selection.cells.concat(this).includes(this.closest('td,.cell'))) {
+    //if (!selection.cells.length || selection.cells.concat(this).includes(this.closest('td,.cell'))) {
         let filters = selection.cells.concat(this).map(cell => cell.scope).reduce((result, scope) => { result[scope.localName] = (result[scope.localName] || []); result[scope.localName].push(scope.value); return result }, {});
         let scope = this.scope;
         let model = scope.closest("model");
@@ -281,7 +288,7 @@ xover.listener.on('click::.datagrid .filterable', function () {
         for (let key of Object.keys(filters)) {
             target.setAttributeNS('http://panax.io/state/filter', `filter:${key}`, filters[key].distinct().join("|"))
         }
-    }
+//    }
 })
 
 xo.listener.on(`transform::*[.//@filter:*]`, function ({ result }) {

@@ -52,11 +52,9 @@ xo.listener.on('mousemove::table.datagrid thead th', function () {
 
     table.querySelectorAll('[draggable="true"]').forEach((th, index) => {
         th.dragstart_handler = th.dragstart_handler || function (e) {
-            window.document.dragged_el = this;
+            window.document.dragged_el = this.closest('[xo-slot]');
             //console.log('dragstart', window.document.dragged_el)
             draggedColIndex = this.cellIndex || [...this.parentNode.children].indexOf(this);
-            draggedCol = this.closest('[xo-slot]');
-            console.log(draggedCol)
             createArrow();
         }
         th.removeEventListener('dragstart', th.dragstart_handler);
@@ -84,7 +82,7 @@ xo.listener.on('mousemove::table.datagrid thead th', function () {
             e.preventDefault();
             removeArrow();
             if (draggedColIndex !== targetColIndex) {
-                moveColumn({ draggedColIndex, draggedCol }, { targetColIndex, targetCol });
+                moveColumn({ draggedColIndex, draggedCol: window.document.dragged_el }, { targetColIndex, targetCol });
             }
             this.dispatch('columnRearranged');
         }
@@ -221,20 +219,26 @@ xo.listener.on(`beforeTransform?stylesheet.selectFirst("//comment()[starts-with(
 
 xo.listener.on(`change::@filter:*`, function ({ document, srcElement }) {
     this.inert = true;
-    srcElement.closest('table').dispatch('datagrid:filter');
+    let table = srcElement.closest('table');
+    table && table.dispatch('datagrid:filter');
 })
 
 xo.listener.on(`datagrid:filter::html:table`, async function ({ document }) {
     let table = this
     let scope = this.scope;
     let filters = scope.select(`@filter:*`);
+    table.original = table.original || !table.querySelector('.filtered') && table.cloneNode(true) || undefined;
     table.querySelectorAll('td.filtered').forEach(el => el.classList.remove('filtered'));
     if (table.original) {
-        table.replaceWith(table.original);
-        table = table.original;
+        let original = table.original;
+        table.replaceWith(original);
+        table = original;
+        table.original = original.cloneNode(true);
+    } else if (window.document.contains(table) && !filters.length) {
+        this.section.render()
+        return
     }
     if (filters.length) {
-        table.original = table.original || !table.querySelector('.filtered') && table.cloneNode(true) || undefined;
         for (let attr of filters) {
             let values = attr.value.split("|");
             let cells = table.select(`tbody/tr/td[@xo-slot="${attr.localName}" and (${values.map(value => `@cell-value="${value}"`).join(" or ")})]`);

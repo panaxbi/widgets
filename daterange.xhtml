@@ -4,8 +4,16 @@
         let formatValue = (input) => (`${input}`.replace(/(\d{4})-?(\d{2})-?(\d{2})/g, '$1$2$3') || "");
         constructor.extend({
             init(content) {
+                let self = this;
                 for (let part of content.querySelectorAll("[type=date]")) {
-                    part.addEventListener("change", this.selectValue);
+                    part.addEventListener("change", function () {
+                        if (this.value != '' && !isValidISODate(this.value) || this.preventChangeEvent) {
+                            this.preventChangeEvent = undefined;
+                            event && event.preventDefault();
+                            return;
+                        }
+                        self.selectValue()
+                    });
                 }
                 this.value = this.attributes.value;
             },

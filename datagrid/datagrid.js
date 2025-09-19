@@ -4,9 +4,8 @@
 // • Replica el header de grupos que genera XSLT (tab-space + íconos SVG +/-)
 // • Mantiene compatibilidad con collapse/expand existentes (evento datagrid:collapse/expand)
 (function () {
-    const NS_SVG = 'http://www.w3.org/2000/svg';
     const stackSVG = xover.xml.createNode(`
-            <svg xmlns="${xover.spaces.svg}" width="16" height="16" fill="currentColor"
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
                  class="bi bi-stack ms-2 button" viewBox="0 0 16 16"
                  onclick="dispatch('ungroup')"
                  xo-swap="@xo-slot @xo-scope" xo-xsl-source="xsl_template_datagrid_group_icon">

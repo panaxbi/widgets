@@ -22,9 +22,9 @@
     }
 
     // Pinta/actualiza badges en thead y habilita ungroup al click (estilo datagrid.html)
-    function decorateGroupHeaders(table) {
-        const target = table.scope;
-        const fields = getGroupFields(table);
+    function decorateGroupHeaders(table = this) {
+        const target = this.scope;
+        const fields = getGroupFields(this);
         if (!table.tHead) return table;
 
         // limpia badges previos
@@ -172,9 +172,10 @@
         return tr;
     }
 
-    function groupTable(table) {
-        const scope = table.scope;
-        const fields = getGroupFields(table).filter(Boolean);
+    function groupTable() {
+        const scope = this.scope;
+        const fields = getGroupFields(this).filter(Boolean);
+        let table = this.cloneNode(true)
 
         // Si no hay grupos activos: dejar DOM plano
         if (!fields.length) {
@@ -184,7 +185,7 @@
             const tb = document.createElement('tbody');
             (table._flatRows || []).forEach(r => tb.append(r.cloneNode(true)));
             table.append(tb);
-            decorateGroupHeaders(table);
+            decorateGroupHeaders.call(this, table);
             return applyCollapsedVisibility(table);
         }
 
@@ -243,12 +244,14 @@
         renderLevel(root, [], 0);
 
         // Decora headers (badges de agrupación)
-        decorateGroupHeaders(table);
+        decorateGroupHeaders.call(this, table);
 
         // Re-render tfoot si existe
-        table.querySelectorAll('tfoot [xo-stylesheet]')?.forEach(section => section.render && section.render());
 
-        return applyCollapsedVisibility(table);
+        applyCollapsedVisibility(table);
+        this.replaceWith(table)
+        table.querySelectorAll('tfoot [xo-stylesheet]')?.forEach(section => section.render && section.render());
+        return this;
     }
 
     function applyCollapsedVisibility(table) {
@@ -300,13 +303,13 @@
         return table;
     }
 
-    const handler = function () { return groupTable(this); };
+    const handler = function () { return groupTable.call(this); };
 
     // Axis correctos
     xo.listener.on('group::html:table', handler);
     xo.listener.on('datagrid:group::html:table', handler);
     // Sólo recalcula visibilidad (sin reagrupar) – útil tras collapse/expand
-    xo.listener.on('datagrid:group-visibility::html:table', function () { decorateGroupHeaders(this); return applyCollapsedVisibility(this); });
+    xo.listener.on('datagrid:group-visibility::html:table', function () { decorateGroupHeaders.call(this); return applyCollapsedVisibility(this); });
 })();
 
 (function () {

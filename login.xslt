@@ -105,6 +105,10 @@ xmlns:login="http://widgets.panaxbi.com/login"
 	max-width: 25vw;
 }
 
+.login slot[inert] {
+	display: none;
+}
+
 div.container:has(div.g_id_signin.signup_button) {
     justify-content: center;
     position: relative;

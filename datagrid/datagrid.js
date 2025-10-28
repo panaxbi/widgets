@@ -93,6 +93,40 @@
         return (v || '').trim();
     }
 
+    // ==== SORT helpers (compatible con agrupado) ====
+    function getSortSpec(table) {
+        const ths = [...(table.tHead?.querySelectorAll('th[xo-slot]') || [])];
+        const spec = new Map();
+        ths.forEach(th => {
+            const slot = th.getAttribute('xo-slot') || '';
+            const field = slot.startsWith('group:') ? slot.slice(6) : slot;
+            const dir = th.dataset.sort || (th.classList.contains('sorted-asc') ? 'asc' : (th.classList.contains('sorted-desc') ? 'desc' : ''));
+            spec.set(field, dir);
+        });
+        return spec; // Map(field -> 'asc'|'desc'|'')
+    }
+    function cmpAsc(a, b) { return a < b ? -1 : a > b ? 1 : 0; }
+    function cmpDesc(a, b) { return -cmpAsc(a, b); }
+    function groupKeyComparator(field, spec) {
+        const direction = (spec.get(field) || 'asc').toLowerCase();
+        const cmp = direction === 'desc' ? cmpDesc : cmpAsc;
+        return (a, b) => cmp(a[0], b[0]); // a,b son [value, entry]
+    }
+    function rowComparator(spec) {
+        const orderedFields = [...spec.entries()].filter(([, dir]) => !!dir).map(([f]) => f);
+        return (ra, rb) => {
+            for (const field of orderedFields) {
+                const va = getGroupValue(ra, field);
+                const vb = getGroupValue(rb, field);
+                const dir = (spec.get(field) || 'asc').toLowerCase();
+                const cmp = dir === 'desc' ? cmpDesc : cmpAsc;
+                const c = cmp(va, vb);
+                if (c) return c;
+            }
+            return 0;
+        };
+    }
+
     const dashSVGBase = xover.xml.createNode(`
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-dash-square icon-btn" viewBox="0 0 16 16" style="cursor:pointer;" onclick="dispatch('collapse')">
 			<path d="M14 1a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h12zM2 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H2z"></path>
@@ -176,14 +210,17 @@
         const scope = this.scope;
         const fields = getGroupFields(this).filter(Boolean);
         let table = this.cloneNode(true)
-
+        table.original = this.original;
         // Si no hay grupos activos: dejar DOM plano
         if (!fields.length) {
-            // BUGFIX: primero tomar snapshot y DESPUÉS limpiar tbodies
             snapshotRows(table);
             resetTbody(table);
             const tb = document.createElement('tbody');
-            (table._flatRows || []).forEach(r => tb.append(r.cloneNode(true)));
+            const sortSpec = getSortSpec(table);
+            const rows = (table._flatRows || []).slice();
+            const hasSort = [...sortSpec.values()].some(Boolean);
+            if (hasSort) rows.sort(rowComparator(sortSpec));
+            rows.forEach(r => tb.append(r.cloneNode(true)));
             table.append(tb);
             decorateGroupHeaders.call(this, table);
             return applyCollapsedVisibility(table);
@@ -219,19 +256,27 @@
         // 2) Renderizar en orden jerárquico para garantizar contigüidad de grupos
         const renderLevel = (map, parents, depth) => {
             const field = fields[depth];
-            for (const [value, entry] of map) {
+            const entries = Array.from(map.entries());
+            const sortSpecLevel = getSortSpec(table);
+            entries.sort(groupKeyComparator(field, sortSpecLevel));
+            for (const [value, entry] of entries) {
                 const chain = parents.concat([{ field, value }]);
                 const ck = chainToKey(chain);
                 const tb = document.createElement('tbody');
                 tb.dataset.chain = ck;
                 tb.dataset.level = String(depth + 1);
+                tb.setAttribute(`group:${field}`, value);
 
                 const header = makeHeaderRow(table, depth, parents, field, value, totalCols, ck);
                 tb.append(header);
 
                 if (depth === fields.length - 1) {
-                    // Hoja: pegar filas aquí mismo, debajo del header
-                    entry.rows.forEach(r => tb.append(r));
+                    // Ordenar filas hoja según el sort activo (si lo hay)
+                    const sortSpecRows = getSortSpec(table);
+                    const hasRowSort = [...sortSpecRows.values()].some(Boolean);
+                    const rows = entry.rows.slice();
+                    if (hasRowSort) rows.sort(rowComparator(sortSpecRows));
+                    rows.forEach(r => tb.append(r));
                     table.append(tb);
                 } else {
                     // Padre intermedio: primero el header, luego recursión de hijos, todo contiguo
@@ -247,10 +292,10 @@
         decorateGroupHeaders.call(this, table);
 
         // Re-render tfoot si existe
+        this.querySelectorAll('tfoot [xo-stylesheet]')?.forEach(section => section.render && section.render());
 
         applyCollapsedVisibility(table);
         this.replaceWith(table)
-        table.querySelectorAll('tfoot [xo-stylesheet]')?.forEach(section => section.render && section.render());
         return this;
     }
 
@@ -305,7 +350,6 @@
 
     const handler = function () { return groupTable.call(this); };
 
-    // Axis correctos
     xo.listener.on('group::html:table', handler);
     xo.listener.on('datagrid:group::html:table', handler);
     // Sólo recalcula visibilidad (sin reagrupar) – útil tras collapse/expand
@@ -531,21 +575,15 @@
             }
         }
     })
-
-    xo.listener.on(`datagrid:filter::html:table`, async function ({ document }) {
-        let table = this
+    let originalClones = new WeakMap()
+    const filterTable = async function ({ document }) {
         let scope = this.scope;
         let filters = scope.select(`@filter:*`);
-        table.original = table.original || !table.querySelector('.filtered') && table.cloneNode(true) || undefined;
+        let table = (this.original || this).cloneNode(true);
+        table.original = this.original || !this.querySelector('.filtered') && this || undefined;
         table.querySelectorAll('td.filtered').forEach(el => el.classList.remove('filtered'));
-        if (table.original) {
-            let original = table.original;
-            table.replaceWith(original);
-            table = original;
-            table.original = original.cloneNode(true);
-        } else if (window.document.contains(table) && !filters.length) {
-            this.section.render()
-            return
+        if (!table.original && window.document.contains(this)) {
+            return this.section.render();
         }
         if (filters.length) {
             for (let attr of filters) {
@@ -574,8 +612,10 @@
 
         }
         table.querySelectorAll('tfoot [xo-stylesheet]').forEach(section => section.render())
+        this.replaceWith(table)
         return table;
-    })
+    }
+    xo.listener.on(`datagrid:filter::html:table`, filterTable)
 
     xo.listener.on(`datagrid:filter`, function ({ document }) {
         for (let attr of this.select(`//@filter:*`)) {
@@ -609,11 +649,11 @@
         let table = result.querySelector('table');
         if (!table) return;
         table.dispatch('datagrid:filter');
-    }, { priority: 998 })
+    }, { priority: -1 })
 
     xo.listener.on(`beforeTransform::model[*/@filter:*]`, function () {
         this.dispatch('datagrid:filter')
-    }, { priority: 998 })
+    }, { priority: -1 })
 
     xo.listener.on(`beforeTransform?stylesheet.href*=datagrid-footer.xslt`, function () {
         this.dispatch('datagrid:filter')
@@ -627,7 +667,7 @@
                 }
             }
         }
-    }, { priority: 998 })
+    }, { priority: -1 })
 
     const columnRearranged = function () {
         let tr = this.closest('tr');
@@ -731,6 +771,7 @@
     function sortRows(header) {
         let index = header.$$("preceding-sibling::*").reduce((index, el) => { index += el.colSpan || 0; return index }, 0);
         let direction = 1;
+        debugger
         let getValue = (el) => {
             let val = el.cells[index].getAttribute("value") || el.cells[index].textContent;
             let parsed_value = +val.replace(/\$|^#|,/g, '');
@@ -749,7 +790,7 @@
             }
         }
         [...header.parentNode.querySelectorAll('.sorted')].filter(th => th != header).forEach(th => th.classList.remove('sorted-desc', 'sorted-asc', 'sorted'));
-        for (let tbody of header.closest('table').select('tbody')) {
+        for (let tbody of header.closest('table').querySelectorAll('tbody')) {
             let rows = [...tbody.querySelectorAll("tr")];
             if (header.classList.contains("sorted-desc")) {
                 index = 0;
@@ -773,78 +814,156 @@
     }
 })();
 
-
-async function generateExcelFile(table, name) {
-    let progress = await xo.sources["loading.xslt"].render();
-    await xover.delay(500);
-    //if (this.Interval) window.clearInterval(this.Interval);
-    let _progress = 0;
-    let progress_bar = progress[0].querySelector('progress');
-    progress_bar.style.display = 'inline';
-
-    //this.Interval = setInterval(function () {
-    //    if (progress_bar) {
-    //        progress_bar.value = _progress;
-    //        console.log(_progress);
-    //    }
-    //}, 500);
-    table = table.cloneNode(true);
-    table.querySelectorAll('del,.hidden,.non-printable').toArray().remove();
-    const hidden = [...document.querySelectorAll("colgroup col")].map(col => col.matches(".hidden"));
-    /*debugger*/
-    for (a of table.querySelectorAll('a')) {
-        a.replaceWith(a.createTextNode(a.selectFirst("text()[1]")))
-    }
-    let set_computed_background = function (cell) {
-        let border = cell.style.border;
-        let backgroundColor = cell.style.backgroundColor;
-        let color = cell.style.color;
-        let styleSheets = document.styleSheets;
-        for (let styleSheet of [...styleSheets]) {
-            try {
-                for (let rule of [...styleSheet.rules].filter(rule => rule.selectorText && (rule.style.border || rule.style.backgroundColor || rule.style.color) && cell.matches(rule.selectorText))) {
-                    if (!border && rule.style.border) {
-                        cell.style.border = rule.style.border;
-                    }
-                    if (!backgroundColor && rule.style.backgroundColor) {
-                        cell.style.backgroundColor = rule.style.backgroundColor;
-                    }
-                    if (!color && rule.style.color) {
-                        cell.style.color = rule.style.color;
-                    }
-                }
-            } catch (e) {
-                console.warn(e)
-            }
-        }
-    }
-    let rows = table.getElementsByTagName("tr");
-    let r = 0;
-    for (let row of rows) {
-        ++r;
-        _progress = r / rows.length * 100;
-        for (let [ix, el] of Object.entries(row.querySelectorAll("td,th"))) {
-            if (hidden[ix]) {
-                el.remove();
-                continue;
-            }
-            set_computed_background(el);
-        }
-        if (r % (rows.length / 10) == 0) {
-            progress_bar.value = _progress;
-            await xover.delay(500);
-        }
-    }
-    xo.dom.toExcel(table, name.split("?")[0])
-    progress.remove();
-    if (this.Interval) window.clearInterval(this.Interval);
-}
-
-xo.listener.on(`change::@group:*`, `change::@filter:*`, async function ({ document, srcElement }) {
+xo.listener.on(`change::@filter:*`, async function ({ document, srcElement }) {//`change::@group:*`, 
     this.inert = true;
     let tables = srcElement.closest('table') || srcElement.findAll(`table`);
     for (let table of [tables].flat()) {
         table = table && await table.dispatch('datagrid:filter');
-        table = table && await table.dispatch('datagrid:group');
+        //table = table && await table.dispatch('datagrid:group');
     }
-})
+});
+
+// beforeTransform: consolidate totals into one <row> and compute grouped counters/totals per @group:*
+// - Reads totalizable columns from ROOT attributes: type:<col>="money|quantity" OR total:<col>=*
+// - Sums positives and negatives
+// - Writes state:count with original row count on the document element
+// - Reduces dataset to a single <row> with global totals
+// - Persists grouped summaries under <group:totals><group:total dim="..." value="..." .../></group:totals>
+//   Each <group:total> has state:count and one attribute per totalizable column with the group sum
+
+// Consolidate totals and output one <row> per dimension combination (or a single row if none)
+// Columns to totalize are driven by ROOT attributes:
+//   • type:<col> = "money" | "quantity"
+//   • total:<col> = * (any value means opt‑in)
+// Behaviour:
+//   • Sums positives and negatives
+//   • state:count on the root with original row count
+//   • Uses XPath union selector for speed: */row/@col1 | */row/@col2 | ...
+//   • Groups by all @group:* found on each row (ns http://panax.io/state/group)
+//   • If no groups exist, a single consolidated row is created (key "")
+//   • Replaces children with the aggregated fragment via replaceChildren
+
+(function () {
+    function parseNumber(s) {
+        if (s == null) return NaN;
+        const t = String(s)
+            .replace(/[\s\u00A0]/g, "")      // spaces, NBSP
+            .replace(/[^0-9+\-.,]/g, "")     // strip currency/symbols
+            .replace(/,/g, "");               // thousands comma
+        const n = parseFloat(t);
+        return Number.isFinite(n) ? n : NaN;
+    }
+
+    function consolidate_data({ document, stylesheet }) {
+        if (!stylesheet.selectFirst("//xsl:template[@mode='datagrid:footer-cell']")) return; // only when footer exists
+        const root = (this.documentElement || this);
+        const rows = root.select("row");
+        if (!rows.length) return;
+        const includeNames = root.select(`@type:*[.="money" or .="quantity"]|@total:*`).map(attr => attr.localName).distinct();
+        if (includeNames.length === 0) return; // nothing marked
+
+        // --- Build grouped sums object ---
+        // groups: { key: { dims:Object, sums:{col:number} } }
+        const groups = root.select(`@group:*`).map(group => group.localName);
+        if (!groups.length) groups.push("");
+        const sums = new Map()
+        // Helper: build group key + dims map for a given row
+        const buildKeyAndDims = (row) => {
+            let key = {};
+            for (group_name of groups) {
+                key[group_name] = row.getAttribute(group_name);
+            }
+            key = JSON.stringify(key);
+            sums.set(key, sums.get(key) || {});
+            return sums.get(key);
+        };
+
+        // Fast XPath union to fetch only totalizable attributes
+        const selector = [...includeNames].map(a => `row/@${a}`).join("|");
+
+        for (const attr of root.select(selector)) {
+            const v = parseNumber(attr.value);
+            if (!Number.isFinite(v)) continue;
+            const name = attr.name;
+            const row = attr.parentNode;
+
+            dim = buildKeyAndDims(row);
+            dim[name] = (dim[name] || 0) + v;
+        }
+
+        // skeleton = copia del primer <row> pero sin atributos
+        const skeleton = rows[0].cloneNode(false);
+        while (skeleton.attributes && skeleton.attributes.length) {
+            skeleton.removeAttribute(skeleton.attributes[0].name);
+        }
+
+        const frag = document.createDocumentFragment();
+        if (sums.size === 0) {
+            frag.appendChild(skeleton.cloneNode(false));
+        } else {
+            for (const [key, totals] of sums.entries()) {
+                const r = skeleton.cloneNode(false);
+                if (key) {
+                    let keys = JSON.parse(key);
+                    let selector = ""
+                    for (const [key, value] of Object.entries(keys).filter(([key]) => key)) {
+                        selector += `[@${key}="${value}"]`;
+                        r.setAttribute(key, String(value));
+                    }
+                    let rows = root.select(`row${selector}`);
+                    r.setAttributeNS(xo.spaces["state"], "state:count", rows.length)
+                }
+                for (const [col, total] of Object.entries(totals)) {
+                    r.setAttribute(col, String(total));
+                }
+
+                frag.appendChild(r);
+            }
+        }
+        root.replaceChildren(frag);
+        root
+    }
+    function datagrid_sanitizer({ document, stylesheet }) {
+        consolidate_data.call(this.single(`//ventas`), { document, stylesheet });
+    }
+
+    xo.listener.on(`beforeTransform?stylesheet.selectFirst("//xsl:template[@mode='datagrid:footer-cell']")`, consolidate_data, { priority: -999 });
+    xo.listener.on(`beforeTransform?stylesheet.selectFirst("//xsl:template[@mode='datagrid:widget']")`, datagrid_sanitizer);
+
+    const post_transform = function ({ original, result, stylesheet }) {
+        const filters = this.select(`//@filter:*`).map(attr => attr.localName);
+        const bodies = result.querySelectorAll(`tbody:has(tr > td)`);
+        for (let [ix, tbody] of Object.entries(bodies)/*.slice(0, 10)*/) {
+            let scope = tbody.scope;
+            const frag = document.createDocumentFragment();
+            let skeleton = tbody.querySelector(`tr:has(td)`);
+            let groups = [...tbody.attributes].filter(attr => attr.name.indexOf("group:") == 0);
+            let rows = scope.select(`row${groups.length ? `[${groups.map(attr => `@${attr.name.replace(/^group:/, '')}="${attr.value}"`).join(" and ") }]` : ""}`);
+            if (!rows.length) continue;
+            for (let [ix, row] of Object.entries(rows.slice(0, 400))) {
+                let tr = skeleton.cloneNode(true)
+                let row_head = tr.querySelector(`th[scope=row]`);
+                row_head.textContent = +ix + 1;
+                tr.setAttribute("xo-scope", row.getAttributeNS(xover.spaces["xover"], "id") || '');
+                for (let slot of tr.select(`.//@xo-slot[.!='']`)) {
+                    if (filters.includes(slot.value)) {
+                        let cell = slot.closest('td');
+                        if (cell)
+                            cell.classList.add('filtered');
+                    }
+                    let value = row.getAttribute(slot.value) || '';
+                    let td = slot.parentNode.querySelector(`:not(:has(*))`);
+                    if (!td) continue;
+                    td.textContent = value;
+                    td.setAttribute("value", value)
+                }
+                frag.appendChild(tr);
+            }
+            skeleton.replaceWith(frag)
+        }
+        return result;
+        //debugger
+    }
+    xo.listener.on(`transform?stylesheet.selectFirst("//xsl:template[@mode='datagrid:widget']")::/model[ventas]`, post_transform, { priority: -1 })
+})();
+document.querySelector(`main`)?.render();

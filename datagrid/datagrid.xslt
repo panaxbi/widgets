@@ -22,7 +22,9 @@ xmlns:debug="http://panax.io/debug"
 >
 	<xsl:import href="../functions.xslt"/>
 	<xsl:import href="../common.xslt"/>
-	<xsl:output method="html" /><!-- helps in normalizing groups -->
+	<xsl:import href="groups.xslt"/>
+	<xsl:output method="html" />
+	<!-- helps in normalizing groups -->
 	<xsl:key name="state" match="node-expected" use="'hidden'"/>
 
 	<xsl:key name="state:hidden" match="@*[namespace-uri()!='' and namespace-uri()!='http://panax.io/state/group']" use="name()"/>
@@ -40,8 +42,6 @@ xmlns:debug="http://panax.io/debug"
 	<xsl:key name="data" match="node-expected" use="concat(generate-id(),'::',name())"/>
 	<xsl:key name="data" match="/model/*[not(row)]/@state:record_count" use="'*'"/>
 
-	<xsl:key name="data:group" match="*[row]/@group:*" use="'*'"/>
-	<xsl:key name="data:group" match="group:*/row/@desc" use="name(../..)"/>
 	<xsl:key name="data:group" match="/model/*[not(row)]/@state:record_count" use="'*'"/>
 
 	<xsl:key name="datagrid:caption" match="@dummy" use="../@xo:id"/>
@@ -343,96 +343,13 @@ xmlns:debug="http://panax.io/debug"
 		<xsl:param name="dimensions" select="."/>
 		<xsl:param name="x-dimension" select="node-expected"/>
 		<xsl:param name="y-dimension" select="node-expected"/>
-		<xsl:param name="groups" select="ancestor-or-self::*[1]/@group:*"/>
-		<xsl:param name="parent-groups" select="dummy:node-expected"/>
-		<xsl:param name="rows" select="$y-dimension[self::*]|self::*[not(*)]/@state:record_count|$y-dimension[not(self::*)][.=current()]/.."/>
-		<xsl:if test="self::* or not(self::*) and $rows">
-			<tbody>
-				<xsl:variable name="collapse:match" select="key('collapse:group', concat(local-name(current()/../..),'::',.))"/>
-				<xsl:variable name="collapse">
-					<xsl:for-each select="$collapse:match/parent::*[count(@*[namespace-uri()=''])=count($parent-groups|.)]">
-						<xsl:for-each select="@*[namespace-uri()='']">
-							<xsl:if test="position()=1">,</xsl:if>
-							<xsl:choose>
-								<xsl:when test="$rows/@*[name()=local-name(current())] = current()">1</xsl:when>
-								<xsl:otherwise>0</xsl:otherwise>
-							</xsl:choose>
-						</xsl:for-each>
-					</xsl:for-each>
-				</xsl:variable>
-				<xsl:variable name="collapse_value">
-					<xsl:for-each select="$parent-groups|.">
-						<xsl:if test="position()=1">,</xsl:if>
-						<xsl:text>1</xsl:text>
-					</xsl:for-each>
-				</xsl:variable>
-				<!-- class="table-group-divider" -->
-				<xsl:variable name="collapsed">
-					<xsl:choose>
-						<xsl:when test="not(//@group:*[1])">false</xsl:when>
-						<xsl:when test="contains($collapse,$collapse_value)">true</xsl:when>
-						<xsl:when test="not($groups) and $state:collapse_all = 'true'">
-							<xsl:variable name="expand:match" select="key('expand:group', concat(local-name(current()/../..),'::',.))"/>
-							<xsl:variable name="expand">
-								<xsl:for-each select="$expand:match/parent::*[count(@*[namespace-uri()=''])=count($parent-groups|.)]">
-									<xsl:for-each select="@*[namespace-uri()='']">
-										<xsl:if test="position()=1">,</xsl:if>
-										<xsl:choose>
-											<xsl:when test="$rows/@*[name()=local-name(current())] = current()">1</xsl:when>
-											<xsl:otherwise>0</xsl:otherwise>
-										</xsl:choose>
-									</xsl:for-each>
-								</xsl:for-each>
-							</xsl:variable>
-							<xsl:variable name="expand_value">
-								<xsl:for-each select="$parent-groups|.">
-									<xsl:if test="position()=1">,</xsl:if>
-									<xsl:text>1</xsl:text>
-								</xsl:for-each>
-							</xsl:variable>
-							<xsl:choose>
-								<xsl:when test="contains($expand,$expand_value)">false</xsl:when>
-								<xsl:otherwise>true</xsl:otherwise>
-							</xsl:choose>
-						</xsl:when>
-						<xsl:otherwise>false</xsl:otherwise>
-					</xsl:choose>
-				</xsl:variable>
-				<xsl:apply-templates mode="datagrid:tbody-header" select=".">
-					<xsl:with-param name="x-dimension" select="$x-dimension"/>
-					<xsl:with-param name="rows" select="$rows"/>
-					<xsl:with-param name="groups" select="$groups"/>
-					<xsl:with-param name="parent-groups" select="$parent-groups"/>
-					<xsl:with-param name="collapsed" select="$collapsed='true'"/>
-				</xsl:apply-templates>
-				<xsl:choose>
-					<xsl:when test="$collapsed='true'"></xsl:when>
-					<xsl:when test="$groups">
-						<xsl:apply-templates mode="datagrid:tbody" select="$groups[1]">
-							<xsl:with-param name="x-dimension" select="$x-dimension"/>
-							<xsl:with-param name="y-dimension" select="$rows"/>
-							<xsl:with-param name="groups" select="$groups"/>
-							<xsl:with-param name="parent-groups" select="$parent-groups|."/>
-						</xsl:apply-templates>
-					</xsl:when>
-					<xsl:otherwise>
-						<xsl:apply-templates mode="datagrid:row" select="$rows">
-							<xsl:with-param name="x-dimension" select="$x-dimension"/>
-							<xsl:with-param name="parent-groups" select="$parent-groups|."/>
-						</xsl:apply-templates>
-					</xsl:otherwise>
-				</xsl:choose>
-				<xsl:apply-templates mode="datagrid:tbody-footer" select=".">
-					<xsl:with-param name="x-dimension" select="$x-dimension"/>
-					<xsl:with-param name="rows" select="$rows"/>
-					<xsl:with-param name="groups" select="$groups"/>
-					<xsl:with-param name="parent-groups" select="$parent-groups"/>
-				</xsl:apply-templates>
-			</tbody>
-		</xsl:if>
+		<xsl:param name="rows" select="$y-dimension[self::*]"/>
+		<xsl:apply-templates mode="datagrid:row" select="$rows[1]">
+			<xsl:with-param name="x-dimension" select="$x-dimension"/>
+		</xsl:apply-templates>
 	</xsl:template>
 
-	<xsl:template mode="datagrid:tbody" match="*[@page:index]">
+	<xsl:template mode="datagrid:tbody" match="*[@page:index]" priority="1">
 		<xsl:param name="x-dimension" select="node-expected"/>
 		<xsl:variable name="page-size" select="@page:size"/>
 		<tbody page-index="{@page:index}" page-size="{@page:size}">
@@ -449,27 +366,7 @@ xmlns:debug="http://panax.io/debug"
 		</tbody>
 	</xsl:template>
 
-	<xsl:template mode="datagrid:tbody" match="@group:*">
-		<xsl:param name="dimensions" select="."/>
-		<xsl:param name="x-dimension" select="node-expected"/>
-		<xsl:param name="y-dimension" select="node-expected"/>
-		<xsl:param name="groups" select="ancestor-or-self::*[1]/@group:*"/>
-		<xsl:param name="parent-groups" select="dummy:node-expected"/>
-
-		<xsl:comment>debug:info</xsl:comment>
-		<xsl:variable name="group" select="key('data:group',name())"/>
-		<!--<xsl:variable name="rows" select="key('datagrid:record',$y-dimension/@xo:id)/@*[name()=local-name(current())]"/>-->
-		<xsl:variable name="rows" select="$y-dimension/@*[name()=local-name(current())]"/>
-		<xsl:apply-templates mode="datagrid:tbody" select="$group[$rows]">
-			<xsl:sort select="." data-type="text"/>
-			<xsl:with-param name="x-dimension" select="$x-dimension"/>
-			<xsl:with-param name="y-dimension" select="$rows"/>
-			<xsl:with-param name="groups" select="$groups[not(position()=1)]"/>
-			<xsl:with-param name="parent-groups" select="$parent-groups"/>
-		</xsl:apply-templates>
-	</xsl:template>
-
-	<xsl:template mode="datagrid:tbody" match="@state:record_count">
+	<xsl:template mode="datagrid:tbody" match="@state:record_count" priority="1">
 		<tbody>
 			<tr>
 				<td colspan="100" style="text-align: left; padding-inline: 5rem;">
@@ -481,7 +378,7 @@ xmlns:debug="http://panax.io/debug"
 		</tbody>
 	</xsl:template>
 
-	<xsl:template mode="datagrid:tbody" match="@state:record_count[.=0]">
+	<xsl:template mode="datagrid:tbody" match="@state:record_count[.=0]" priority="1">
 		<tbody>
 			<tr>
 				<td colspan="100" style="text-align: left; padding-inline: 5rem;">
@@ -539,7 +436,13 @@ xmlns:debug="http://panax.io/debug"
 		<xsl:param name="x-dimension" select="$row/@*[not(key('state:hidden',name()))]"/>
 		<xsl:param name="parent-groups" select="node-expected"/>
 		<tr>
+			<xsl:for-each select="$parent-groups">
+				<xsl:attribute name="{name(../..)}">
+					<xsl:value-of select="."/>
+				</xsl:attribute>
+			</xsl:for-each>
 			<th scope="row">
+				<xsl:value-of select="count(../..)"/>: 
 				<xsl:value-of select="position()"/>
 			</th>
 			<xsl:apply-templates mode="datagrid:cell" select="$x-dimension">
@@ -549,6 +452,9 @@ xmlns:debug="http://panax.io/debug"
 			</xsl:apply-templates>
 		</tr>
 	</xsl:template>
+
+	<!--<xsl:template mode="datagrid:row" match="*">
+	</xsl:template>-->
 
 	<xsl:template mode="datagrid:row" match="@*">
 		<xsl:param name="x-dimension" select="node-expected"/>
@@ -710,7 +616,8 @@ xmlns:debug="http://panax.io/debug"
 	<xsl:template mode="datagrid:cell" match="@*">
 		<xsl:param name="row" select="ancestor-or-self::*[1]"/>
 		<xsl:param name="data" select="$row/@*"/>
-		<xsl:variable name="cell" select="$row/@*[name()=local-name(current())]"/>
+		<xsl:variable name="key" select="local-name()"/>
+		<xsl:variable name="cell" select="$row/@*[name()=$key]"/>
 		<xsl:variable name="text-filter">
 			<xsl:if test="key('data:filter',local-name())">filtered</xsl:if>
 		</xsl:variable>
@@ -718,15 +625,15 @@ xmlns:debug="http://panax.io/debug"
 			<xsl:apply-templates mode="datagrid:cell-class" select="."/>
 			<xsl:apply-templates mode="datagrid:cell-class-by-type" select="."/>
 		</xsl:variable>
-		<td xo-scope="inherit" xo-slot="{local-name()}" cell-value="{$cell}" class="text-nowrap {$text-filter} {$classes} cell domain-{local-name()}">
-			<xsl:apply-templates mode="datagrid:cell-content" select="$cell"/>
+		<td xo-scope="inherit" xo-slot="{local-name()}" cell-value="{$cell}" class="text-nowrap {$classes} cell domain-{local-name()}">
+			<span class="filterable">
+				<xsl:apply-templates mode="datagrid:cell-content" select="$cell"/>
+			</span>
 		</td>
 	</xsl:template>
 
 	<xsl:template mode="datagrid:cell-content" match="@*">
-		<span class="filterable">
-			<xsl:apply-templates select="."/>
-		</span>
+		<xsl:apply-templates select="."/>
 	</xsl:template>
 
 	<xsl:template mode="datagrid:header-cell" match="@*">
@@ -783,7 +690,8 @@ xmlns:debug="http://panax.io/debug"
 	</xsl:template>
 
 	<xsl:template mode="datagrid:headerText" match="@group:*">
-		<xsl:apply-templates mode="headerText" select="../@*[name()=local-name(current())]"/>
+		<xsl:variable name="key" select="local-name()"/>
+		<xsl:apply-templates mode="headerText" select="../@*[name()=$key]"/>
 	</xsl:template>
 
 	<xsl:template mode="datagrid:header-cell-options" match="@*">
@@ -820,10 +728,11 @@ xmlns:debug="http://panax.io/debug"
 	<xsl:template mode="datagrid:footer-cell" match="@*[key('total', name())]">
 		<xsl:param name="rows" select="node-expected"/>
 		<xsl:param name="data" select="@attributes-expected"/>
+		<xsl:variable name="key" select="local-name()"/>
 		<td>
 			<xsl:variable name="value">
 				<xsl:apply-templates mode="datagrid:aggregate" select=".">
-					<xsl:with-param name="data" select="$rows/@*[name()=local-name(current())]"/>
+					<xsl:with-param name="data" select="$rows/@*[name()=$key]"/>
 				</xsl:apply-templates>
 			</xsl:variable>
 			<xsl:call-template name="format">
@@ -836,10 +745,11 @@ xmlns:debug="http://panax.io/debug"
 	<xsl:template mode="datagrid:footer-cell" match="key('data_type', 'number')|@*[key('datatype', concat('number:',name()))]">
 		<xsl:param name="rows" select="node-expected"/>
 		<xsl:param name="data" select="@attributes-expected"/>
+		<xsl:variable name="key" select="local-name()"/>
 		<td class="number">
 			<xsl:variable name="value">
 				<xsl:apply-templates mode="datagrid:aggregate" select=".">
-					<xsl:with-param name="data" select="$rows/@*[name()=local-name(current())]"/>
+					<xsl:with-param name="data" select="$rows/@*[name()=$key]"/>
 				</xsl:apply-templates>
 			</xsl:variable>
 			<xsl:call-template name="format">
@@ -852,10 +762,11 @@ xmlns:debug="http://panax.io/debug"
 	<xsl:template mode="datagrid:footer-cell" match="key('data_type', 'integer')|@*[key('datatype', concat('integer:',name()))]">
 		<xsl:param name="rows" select="node-expected"/>
 		<xsl:param name="data" select="@attributes-expected"/>
+		<xsl:variable name="key" select="local-name()"/>
 		<td>
 			<xsl:variable name="value">
 				<xsl:apply-templates mode="datagrid:aggregate" select=".">
-					<xsl:with-param name="data" select="$rows/@*[name()=local-name(current())]"/>
+					<xsl:with-param name="data" select="$rows/@*[name()=$key]"/>
 				</xsl:apply-templates>
 			</xsl:variable>
 			<xsl:call-template name="format">
@@ -868,10 +779,11 @@ xmlns:debug="http://panax.io/debug"
 	<xsl:template mode="datagrid:footer-cell" match="key('data_type', 'money')|@*[key('datatype', concat('money:',name()))]">
 		<xsl:param name="rows" select="node-expected"/>
 		<xsl:param name="data" select="@attributes-expected"/>
+		<xsl:variable name="key" select="local-name()"/>
 		<td class="money">
 			<xsl:variable name="value">
 				<xsl:apply-templates mode="datagrid:aggregate" select=".">
-					<xsl:with-param name="data" select="$data[name()=local-name(current())]"/>
+					<xsl:with-param name="data" select="$data[name()=$key]"/>
 				</xsl:apply-templates>
 			</xsl:variable>
 			<xsl:call-template name="format">
@@ -1007,10 +919,11 @@ xmlns:debug="http://panax.io/debug"
 	<xsl:template mode="datagrid:tbody-header-cell" match="@*[key('total', name())]">
 		<xsl:param name="rows" select="node-expected"/>
 		<xsl:param name="data" select="@attributes-expected"/>
+		<xsl:variable name="key" select="local-name()"/>
 		<th class="number">
 			<xsl:variable name="value">
 				<xsl:apply-templates mode="datagrid:aggregate" select=".">
-					<xsl:with-param name="data" select="$rows/@*[name()=local-name(current())]"/>
+					<xsl:with-param name="data" select="$rows/@*[name()=$key]"/>
 				</xsl:apply-templates>
 			</xsl:variable>
 			<xsl:call-template name="format">
@@ -1024,10 +937,11 @@ xmlns:debug="http://panax.io/debug"
 		<xsl:param name="rows" select="node-expected"/>
 		<xsl:param name="data" select="@attributes-expected"/>
 		<xsl:variable name="field" select="current()"/>
+		<xsl:variable name="key" select="local-name()"/>
 		<th class="number">
 			<xsl:variable name="value">
 				<xsl:apply-templates mode="datagrid:aggregate" select=".">
-					<xsl:with-param name="data" select="$rows/@*[name()=local-name(current())]"/>
+					<xsl:with-param name="data" select="$rows/@*[name()=$key]"/>
 				</xsl:apply-templates>
 			</xsl:variable>
 			<xsl:call-template name="format">
@@ -1044,10 +958,11 @@ xmlns:debug="http://panax.io/debug"
 		<xsl:param name="rows" select="node-expected"/>
 		<xsl:param name="data" select="@attributes-expected"/>
 		<xsl:variable name="field" select="current()"/>
+		<xsl:variable name="key" select="local-name()"/>
 		<th class="number integer">
 			<xsl:variable name="value">
 				<xsl:apply-templates mode="datagrid:aggregate" select=".">
-					<xsl:with-param name="data" select="$rows/@*[name()=local-name(current())]"/>
+					<xsl:with-param name="data" select="$rows/@*[name()=$key]"/>
 				</xsl:apply-templates>
 			</xsl:variable>
 			<xsl:call-template name="format">
@@ -1061,10 +976,11 @@ xmlns:debug="http://panax.io/debug"
 		<xsl:param name="rows" select="node-expected"/>
 		<xsl:param name="data" select="@attributes-expected"/>
 		<xsl:variable name="field" select="current()"/>
+		<xsl:variable name="key" select="local-name()"/>
 		<th class="money">
 			<xsl:variable name="value">
 				<xsl:apply-templates mode="datagrid:aggregate" select=".">
-					<xsl:with-param name="data" select="$rows/@*[name()=local-name(current())]"/>
+					<xsl:with-param name="data" select="$rows/@*[name()=$key]"/>
 				</xsl:apply-templates>
 			</xsl:variable>
 			<xsl:call-template name="format">

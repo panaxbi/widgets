@@ -58,7 +58,7 @@ xmlns:xlink="http://www.w3.org/1999/xlink"
 	            }
 				
 				main { 
-					padding-bottom: var(--padding-bottom, var(--footer-height));
+					/*padding-bottom: var(--padding-bottom, var(--footer-height));*/
 					overflow-y: scroll;
 					width: 100vw;
 					flex: 1;

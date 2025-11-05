@@ -114,6 +114,16 @@ div.container:has(div.g_id_signin.signup_button) {
     position: relative;
     display: flex;
 }
+
+.fa-spinner {
+  display: inline-block;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
 			]]>
 			</style>
 			<script src="login.js" fetchpriority="high"/>

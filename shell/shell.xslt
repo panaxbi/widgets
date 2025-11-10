@@ -57,7 +57,7 @@ xmlns:xlink="http://www.w3.org/1999/xlink"
                     height: 100vh !important;
 	            }
 				
-				main { 
+				#shell > main { 
 					/*padding-bottom: var(--padding-bottom, var(--footer-height));*/
 					overflow-y: scroll;
 					width: 100vw;
@@ -65,7 +65,7 @@ xmlns:xlink="http://www.w3.org/1999/xlink"
 					
 				}
 				
-				header h1 {
+				#shell > header h1 {
 					color: var(--color-title-header);
 					margin-bottom: 0;
 					margin-left: 5px;
@@ -73,14 +73,14 @@ xmlns:xlink="http://www.w3.org/1999/xlink"
                     position: fixed;
 				}
 				
-				footer {
+				#shell > footer {
 					border-top: 2px solid silver !important;
 					/*position: fixed;*/
 					bottom: 0;
 					height: var(--footer-height);
 					background-color: var(--bg-white) !important;
 					width: 100%;
-                    transition: 0.5s;
+          transition: 0.5s;
 					overflow: hidden;
 				}
 				
@@ -100,6 +100,14 @@ xmlns:xlink="http://www.w3.org/1999/xlink"
 				#shell > main {
 					z-index: 1019;
 				}
+        
+				[x\:publishsource="Excel"] table thead td {
+					position:relative;
+        }
+        
+        .page-menu {
+					min-height: max-content;
+        }
 				]]>
 			</style>
 			<xsl:apply-templates mode="shell:nav-title" select="."/>

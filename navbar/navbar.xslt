@@ -29,9 +29,17 @@
 
 	<xsl:template match="/">
 		<span class="page-menu">
-			<xsl:apply-templates mode="widget" select="*"/>
+			<xsl:apply-templates mode="navbar:widget" select="*"/>
 		</span>
 	</xsl:template>
+
+  <xsl:template mode="headerText" match="*[@navbar:text]">
+    <xsl:apply-templates mode="headerText" select="@navbar:headerText"/>
+  </xsl:template>
+
+  <xsl:template mode="headerText" match="*[@navbar:headerText]">
+    <xsl:apply-templates select="@navbar:headerText"/>
+  </xsl:template>
 
 	<xsl:template mode="navbar:headerText" match="*" priority="1">
 		<xsl:comment>debug:info</xsl:comment>
@@ -59,7 +67,7 @@
 		</xsl:if>
 	</xsl:template>
 
-	<xsl:template mode="navbar:widget" match="*|@*">
+	<xsl:template mode="navbar:widget" match="*[@navbar:*]|@*">
 		<xsl:variable name="current" select="."/>
 		<xsl:variable name="position" select="position()"/>
 		<xsl:variable name="state:filterBy" select="//*/@state:*[local-name()=concat('filterBy_',$position)]"/>
@@ -90,10 +98,18 @@
 		<input type="text" class="form-control" name="{name()}" xo-slot="state:selected" value="{$value}"/>
 	</xsl:template>
 
-	<xsl:template mode="widget" match="*[row]|*[@xsi:nil]" priority="1">
-		<xsl:variable name="value" select="@state:selected"/>
+	<xsl:template mode="widget" match="*[@navbar:control='combobox' or @navbar:position][row]|*[@xsi:nil]">
+    <xsl:variable name="value" select="@state:selected"/>
+    <xsl:variable name="attr">
+      <xsl:choose>
+        <xsl:when test="@navbar:text">
+          <xsl:value-of select="@navbar:text"/>
+        </xsl:when>
+        <xsl:otherwise>desc</xsl:otherwise>
+      </xsl:choose>
+    </xsl:variable>
 		<xsl:apply-templates mode="combobox:widget" select=".">
-			<xsl:with-param name="dataset" select="row/@desc"/>
+			<xsl:with-param name="dataset" select="row/@*[name()=$attr]"/>
 			<xsl:with-param name="xo-slot">state:selected</xsl:with-param>
 			<xsl:with-param name="selected-value" select="$value"/>
 		</xsl:apply-templates>
@@ -128,12 +144,12 @@
 		</px-daterange>
 	</xsl:template>
 
-	<xsl:template mode="widget" match="model">
+	<!--<xsl:template mode="navbar:widget" match="/*">
 		<xsl:comment>debug:info</xsl:comment>
 		<xsl:apply-templates mode="navbar:widget" select="key('filters','*')[count(key('filters',string(@navbar:position))[1]|.)=1]">
 			<xsl:sort select="number(boolean(../@navbar:position))" data-type="number" order="descending"/>
 			<xsl:sort select="../@navbar:position" data-type="number"/>
 			<xsl:sort select="position()" data-type="number"/>
 		</xsl:apply-templates>
-	</xsl:template>
+	</xsl:template>-->
 </xsl:stylesheet>

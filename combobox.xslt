@@ -52,7 +52,7 @@
   </xsl:template>
 
   <xsl:template mode="combobox:option-selected" match="*[@id or @key]/@*">
-    <xsl:param name="selected-value" select="node-expected|current()"/>
+    <xsl:param name="selected-value" select="node-expected"/>
     <xsl:if test="../@id = $selected-value or ../@key = $selected-value">
       <xsl:attribute name="selected"/>
     </xsl:if>
@@ -66,9 +66,9 @@
       <xsl:apply-templates mode="combobox:option-value" select="."></xsl:apply-templates>
     </xsl:variable>
     <option class="data-row">
-      <xsl:if test="$selected-value=$value">
+      <!--<xsl:if test="$selected-value=$value">
         <xsl:attribute name="selected"/>
-      </xsl:if>
+      </xsl:if>-->
       <xsl:if test="$value!=.">
         <xsl:attribute name="value">
           <xsl:value-of select="$value"/>

@@ -113,7 +113,7 @@ xmlns:xlink="http://www.w3.org/1999/xlink"
 			<xsl:apply-templates mode="shell:nav-title" select="."/>
 			<nav class="navbar navbar-expand navbar-light" style="padding:.6rem 1.25rem; position: sticky;">
 				<span class="menu_toggle" style="font-size:30px;" onclick="toggleSidebar()">
-					&#9776; <img src=""/>
+					&#9776;
 				</span>
 				<div class="navbar-collapse collapse">
 					<div>

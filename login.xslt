@@ -147,6 +147,8 @@ div.container:has(div.g_id_signin.signup_button) {
 								<xsl:value-of select="$url"/>
 							</a>
 						</h4>
+						 <a href="#" onclick="document.querySelector('meta[name=google-signin-client_id]')
+					?.remove()">o continúa sin autenticación</a>
 					</xsl:when>
 					<xsl:otherwise>
 						<!--<label for="username" class="sr-only">Username</label>-->

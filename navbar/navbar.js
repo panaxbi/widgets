@@ -1,5 +1,5 @@
 xover.listener.on(`beforeFetch?searchParams`, async function ({ request, searchParams }) {
-  if (request.url.hash !== xover.site.seed) return;
+   if (request.target.source.tag !== xover.site.seed) return;
   let getNodeValue = function (node) {
     if (node.localName == 'selected' && node.namespaceURI == 'http://panax.io/state') {
       let selection = node.parentNode.single(`*[@id=${node.value}]`) || top.document.createElement('p');

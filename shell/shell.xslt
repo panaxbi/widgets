@@ -144,11 +144,11 @@ xmlns:xlink="http://www.w3.org/1999/xlink"
 			<span class="page-menu" xo-source="active" xo-stylesheet="page_navbar.xslt"/>
 			<main>
 			</main>
-			<footer class="d-flex flex-wrap justify-content-between align-items-center py-1 px-3 trash-zone">
-				<div id="page_controls" xo-source="active" xo-stylesheet="page_controls.xslt" class="col-md-12 d-flex align-items-center">
+			<footer class="d-flex flex-wrap justify-content-between align-items-center py-3 px-3 trash-zone">
+				<div id="page_controls" xo-source="active" xo-stylesheet="page_controls.xslt" class="col-md-8 d-flex align-items-center">					
 				</div>
-				<div id="offcanvas" xo-source="active" xo-stylesheet="page_controls.offcanvas.xslt" class="col-md-12 d-flex align-items-center">
-				</div>
+				<ul id="shell_buttons" class="nav col-md-4 justify-content-end list-unstyled d-flex" xo-source="active" xo-stylesheet="shell_buttons.xslt">
+				</ul>
 			</footer>
 			<aside class="sidebar" xo-source="#sitemap" xo-stylesheet="sitemap.xslt" id="sitemap"/>
 			<div class="settings" xo-source="#settings" xo-stylesheet="widgets/settings.xslt"/>

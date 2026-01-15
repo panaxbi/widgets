@@ -16,8 +16,8 @@
 	   indent="yes"/>
 	<xsl:param name="site:seed">''</xsl:param>
 
-	<xsl:key name="filters" match="model/*[@navbar:control]" use="'*'"/>
-	<xsl:key name="filters" match="model/*[@navbar:position]" use="'*'"/>
+	<xsl:key name="filters" match="model/*[@navbar:control][not(@navbar:control='none')]" use="'*'"/>
+	<xsl:key name="filters" match="model/*[@navbar:position][not(@navbar:control='none')]" use="'*'"/>
 	<xsl:key name="filters" match="model/*[@navbar:position or @navbar:control]" use="string(@navbar:position)"/>
 
 	<xsl:key name="filter" match="model/*[@navbar:control]" use="''"/>
@@ -33,13 +33,13 @@
 		</span>
 	</xsl:template>
 
-  <xsl:template mode="headerText" match="*[@navbar:text]">
-    <xsl:apply-templates mode="headerText" select="@navbar:headerText"/>
-  </xsl:template>
+	<xsl:template mode="headerText" match="*[@navbar:text]">
+		<xsl:apply-templates mode="headerText" select="@navbar:headerText"/>
+	</xsl:template>
 
-  <xsl:template mode="headerText" match="*[@navbar:headerText]">
-    <xsl:apply-templates select="@navbar:headerText"/>
-  </xsl:template>
+	<xsl:template mode="headerText" match="*[@navbar:headerText]">
+		<xsl:apply-templates select="@navbar:headerText"/>
+	</xsl:template>
 
 	<xsl:template mode="navbar:headerText" match="*" priority="1">
 		<xsl:comment>debug:info</xsl:comment>
@@ -67,9 +67,18 @@
 		</xsl:if>
 	</xsl:template>
 
-	<xsl:template mode="navbar:widget" match="*[@navbar:*]|@*">
+	<xsl:template mode="navbar:widget" match="*[@navbar:*]">
 		<xsl:variable name="current" select="."/>
-		<xsl:variable name="position" select="position()"/>
+		<xsl:variable name="position">
+			<xsl:choose>
+				<xsl:when test="@navbar:position">
+					<xsl:value-of select="@navbar:position"/>
+				</xsl:when>
+				<xsl:otherwise>
+					<xsl:value-of select="position()"/>
+				</xsl:otherwise>
+			</xsl:choose>
+		</xsl:variable>
 		<xsl:variable name="state:filterBy" select="//*/@state:*[local-name()=concat('filterBy_',$position)]"/>
 		<script src="navbar.js"/>
 		<style>
@@ -78,20 +87,34 @@
 			font-size: 16pt;
 			}
 		</style>
+		<xsl:variable name="filters" select="key('filter',$position)|self::*[not(@navbar:position)]"/>
 		<fieldset class="mutually-exclusive" xo-scope="inherit">
 			<legend style="text-transform:capitalize">
 				<xsl:apply-templates mode="navbar:headerText" select=".">
 					<xsl:with-param name="position" select="$position"/>
 				</xsl:apply-templates>
 			</legend>
-			<xsl:variable name="filters" select="key('filter',$position)|self::*[not(@navbar:position)]"/>
-			<xsl:apply-templates mode="widget" select="$filters[not($state:filterBy) and position()=1 or $state:filterBy=name()]"/>
-			<xsl:for-each select="$filters[not((not($state:filterBy) and position()=1 or $state:filterBy=name()))]">
+			<xsl:apply-templates mode="navbar:widget-group-item" select="$filters">
+				<xsl:sort select="count(self::*[name()=$state:filterBy])" data-type="number" order="descending"/>
+				<xsl:sort select="position()"/>
+			</xsl:apply-templates>
+			<!--<xsl:for-each select="$filters[position()&gt;1]">
+				<xsl:sort select="name()"/>
 				<input type="hidden" name="{name()}" value="{@state:selected}"/>
-			</xsl:for-each>
-			<!--<xsl:apply-templates mode="widget" select="key('filter',generate-id())|key('filter',$state:filterBy)[@navbar:position=$position][1]|key('filter',$position)[1][count(key('filter',$state:filterBy))=0]"/>-->
+			</xsl:for-each>-->
 		</fieldset>
 	</xsl:template>
+
+	<xsl:template mode="navbar:widget-group-item" match="*">
+   <xsl:choose>
+      <xsl:when test="position()=1">
+         <xsl:apply-templates mode="widget" select="."/>
+      </xsl:when>
+      <xsl:otherwise>
+         <xsl:call-template name="hidden"/>
+      </xsl:otherwise>
+		 </xsl:choose>
+</xsl:template>
 
 	<xsl:template mode="widget" match="model/*">
 		<xsl:variable name="value" select="@state:selected"/>
@@ -99,15 +122,15 @@
 	</xsl:template>
 
 	<xsl:template mode="widget" match="*[@navbar:control='combobox' or @navbar:position][row]|*[@xsi:nil]">
-    <xsl:variable name="value" select="@state:selected"/>
-    <xsl:variable name="attr">
-      <xsl:choose>
-        <xsl:when test="@navbar:text">
-          <xsl:value-of select="@navbar:text"/>
-        </xsl:when>
-        <xsl:otherwise>desc</xsl:otherwise>
-      </xsl:choose>
-    </xsl:variable>
+		<xsl:variable name="value" select="@state:selected"/>
+		<xsl:variable name="attr">
+			<xsl:choose>
+				<xsl:when test="@navbar:text">
+					<xsl:value-of select="@navbar:text"/>
+				</xsl:when>
+				<xsl:otherwise>desc</xsl:otherwise>
+			</xsl:choose>
+		</xsl:variable>
 		<xsl:apply-templates mode="combobox:widget" select=".">
 			<xsl:with-param name="dataset" select="row/@*[name()=$attr]"/>
 			<xsl:with-param name="xo-slot">state:selected</xsl:with-param>
@@ -144,12 +167,16 @@
 		</px-daterange>
 	</xsl:template>
 
-	<!--<xsl:template mode="navbar:widget" match="/*">
+	<xsl:template name="hidden" mode="widget" match="*[@navbar:control='hidden']">
+		<input type="hidden" name="{name()}" value="{@state:selected}"/>	
+</xsl:template>
+
+	<xsl:template mode="navbar:widget" match="*[*/@navbar:*]">
 		<xsl:comment>debug:info</xsl:comment>
 		<xsl:apply-templates mode="navbar:widget" select="key('filters','*')[count(key('filters',string(@navbar:position))[1]|.)=1]">
 			<xsl:sort select="number(boolean(../@navbar:position))" data-type="number" order="descending"/>
 			<xsl:sort select="../@navbar:position" data-type="number"/>
 			<xsl:sort select="position()" data-type="number"/>
 		</xsl:apply-templates>
-	</xsl:template>-->
+	</xsl:template>
 </xsl:stylesheet>

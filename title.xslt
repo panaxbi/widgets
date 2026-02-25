@@ -9,6 +9,7 @@ xmlns:px="http://panax.io/entity"
 	   omit-xml-declaration="yes"
 	   indent="yes"/>
 	<xsl:param name="site:seed"></xsl:param>
+	<xsl:param name="site:app">Panax</xsl:param>
 
 	<xsl:key name="title" match="item/@title" use="../@target"/>
 
@@ -22,7 +23,9 @@ xmlns:px="http://panax.io/entity"
 		<xsl:variable name="title">
 			<xsl:value-of select="key('title',substring-before(concat($site:seed,'?'),'?'))"/>
 		</xsl:variable>
-		<script>window.document.title = `Panax BI - <xsl:value-of select="$title"/>`</script>
+		<script>window.document.title = `<xsl:value-of select="$site:app"/><xsl:if test="string($title)!=''"> - <xsl:value-of select="$title"/>
+		</xsl:if>`
+	</script>
 		<xsl:value-of select="$title"/>
 		<!--<xsl:value-of select="substring-before(translate(concat($site:seed,'?'),'_#',' '),'?')"/>-->
 	</xsl:template>

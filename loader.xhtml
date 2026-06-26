@@ -32,6 +32,91 @@
             }
         })
     </script>
+  <style>
+		.ring_image {
+			max-height: 2em;
+		}
+
+		.progress_loading {
+			position: relative;
+			height: 30px;
+			width: 70%;
+			border: 10px solid var(--primary);
+			border-radius: 15px;
+			margin-left: 12rem !important;
+		}
+
+		.no-freeze-spinner #no-freeze-spinner div div {
+			box-shadow: 0 0 10px white;
+		}
+
+		#no-freeze-spinner {
+			position: fixed;
+			top: 0;
+			left: 0;
+			width: 100%;
+			transition: all 0.1s linear;
+			opacity: 0;
+			height: 100vh;
+			transform: scale(10);
+			z-index: -1;
+			background: rgba(0, 0, 0, 0.4);
+		}
+
+		.no-freeze-spinner #no-freeze-spinner {
+			z-index: 1089;
+			opacity: 1.5;
+			transform: scale(2);
+		}
+
+		#no-freeze-spinner > div > div {
+			animation-play-state: paused;
+			border: 5px solid var(--progress-bg-color, var(--secondary-color, gray));
+			border-radius: 50%;
+			animation: rotate 1s infinite linear;
+			border-left-color: var(--progress-color, var(--main-color, var(--primary)));
+			width: 100%;
+			height: 100%;
+		}
+
+		#no-freeze-spinner > div {
+			position: absolute;
+			top: 0;
+			left: 0;
+			right: 0;
+			bottom: 0;
+			margin: auto;
+			border-radius: 50%;
+			/*box-shadow: 0 0 0 2000px rgba(0, 0, 0, 0.4);*/
+			width: 60px;
+			height: 60px;
+			/*padding: 5px;*/
+		}
+
+		.no-freeze-spinner #no-freeze-spinner div div {
+			animation-play-state: running;
+		}
+
+		@keyframes rotate {
+			100% {
+				transform: rotate(360deg);
+			}
+		}
+
+		.no-freeze-spinner #no-freeze-spinner i {
+			position: absolute;
+			top: 0;
+			left: 0;
+			right: 0;
+			bottom: 0;
+			margin: auto;
+			width: 60px;
+			height: 60px;
+			line-height: 4;
+			text-align: center;
+			transform: scale(1);
+		}
+  </style>
     <div class="modal_content-loading">
         <div class="modal-dialog modal-dialog-centered">
             <div class="no-freeze-spinner">

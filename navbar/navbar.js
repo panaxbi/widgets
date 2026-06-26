@@ -70,7 +70,7 @@ xover.listener.on([`change?navbar.checkURL::@state:selected`, "beforeFetch::?FRO
 })
 
 function beforeTransform({ document }) {
-	for (let catalog of document.select(`//*[@navbar:*][not(*) and not(@xsi:nil) or * and @xsi:nil]`)) {
+	for (let catalog of document.select(`//*[@navbar:*][not(*) and @navbar:control="combobox" and not(@xsi:nil) or * and @xsi:nil]`)) {
 		if (catalog.childElementCount) continue;
 		catalog.setAttribute("xsi:nil", true)
 	}

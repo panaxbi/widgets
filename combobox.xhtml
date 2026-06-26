@@ -167,11 +167,25 @@
 					} else if (option.classList.contains("disabled")) {
 						option.classList.add("hidden");
 						filtered = true
-					} else if (option.textContent.normalize('NFD').replace(/[\u0300-\u036f]/g, "").toLowerCase().includes(searchText.normalize('NFD').replace(/[\u0300-\u036f]|_|%/g, "").toLowerCase())) {
-						option.classList.remove("hidden");
 					} else {
-						filtered = true
-						option.classList.add("hidden");
+						const normalize = text => (text || '')
+							.normalize('NFD')
+							.replace(/[\u0300-\u036f]/g, '')
+							.replace(/[_%.-]+/g, ' ')
+							.replace(/\s+/g, ' ')
+							.trim()
+							.toLowerCase();
+
+						const optionText = normalize(option.textContent);
+						const search = normalize(searchText);
+						const terms = search.split(' ').filter(Boolean);
+
+						if (!terms.length || terms.every(term => optionText.includes(term))) {
+							option.classList.remove("hidden");
+						} else {
+							filtered = true;
+							option.classList.add("hidden");
+						}
 					}
 				}
 				filtered && optionsList.classList.add("filtered");

@@ -100,7 +100,7 @@ xmlns:xlink="http://www.w3.org/1999/xlink"
 				#shell > main {
 					z-index: 1019;
 				}
-        
+				
 				[x\:publishsource="Excel"] table thead td {
 					position:relative;
         }
@@ -144,7 +144,7 @@ xmlns:xlink="http://www.w3.org/1999/xlink"
 			<span class="page-menu" xo-source="active" xo-stylesheet="page_navbar.xslt"/>
 			<main>
 			</main>
-			<footer class="d-flex flex-wrap justify-content-between align-items-center py-3 px-3 trash-zone">
+			<footer class="d-flex flex-wrap justify-content-between align-items-center py-2 px-3 trash-zone">
 				<div id="page_controls" xo-source="active" xo-stylesheet="page_controls.xslt" class="col-md-8 d-flex align-items-center">					
 				</div>
 				<ul id="shell_buttons" class="nav col-md-4 justify-content-end list-unstyled d-flex" xo-source="active" xo-stylesheet="shell_buttons.xslt">

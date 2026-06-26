@@ -147,7 +147,7 @@ div.container:has(div.g_id_signin.signup_button) {
 								<xsl:value-of select="$url"/>
 							</a>
 						</h4>
-						 <a href="#" onclick="document.querySelector('meta[name=google-signin-client_id]')
+						<a href="#" onclick="document.querySelector('meta[name=google-signin-client_id]')
 					?.remove()">o continúa sin autenticación</a>
 					</xsl:when>
 					<xsl:otherwise>
@@ -236,12 +236,18 @@ div.container:has(div.g_id_signin.signup_button) {
 		<script src="https://accounts.google.com/gsi/client" async="" defer=""></script>
 		<!--<script src="https://apis.google.com/js/platform.js" async="" defer=""></script>-->
 		<xsl:if test="$meta:google-signin-client_id!='' and $js:secure='true' and $session:status!='authorizing'">
+			<xsl:variable name="show_prompt">
+				<xsl:choose>
+					<xsl:when test="$session:status='authorized' or $session:status='authorizing'">false</xsl:when>
+					<xsl:otherwise>true</xsl:otherwise>
+				</xsl:choose>
+			</xsl:variable>
 			<div class="container" xo-static="self::*" style="height: 60px;">
 				<!--<div class="g-signin2" data-onsuccess="onGoogleLogin" ></div>-->
 				<div id="g_id_onload"
 				data-client_id="{$meta:google-signin-client_id}"
 				data-callback="onGoogleLogin"
-				data-auto_prompt="true"
+				data-auto_prompt="{$show_prompt}"
 				data-cancel_on_tap_outside="false">
 				</div>
 				<div class="g_id_signin signup_button"

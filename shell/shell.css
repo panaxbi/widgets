@@ -1,3 +1,46 @@
+:root {
+	/*--bg-primary: #205d83;*/
+	--bg-primary: hsla(203, 61%, 32%, 1);
+	--bg-primary-ps: hsla(203, 61%, 27%, 1) !important;
+	--bg-primary-sbg: hsla(203, 61%, 87%, 0.9) !important;
+	--bg-primary-second: linear-gradient(-45deg, #205d83 0%, #205d83 100%);
+	--bg-white: #ffffff;
+	--bg-black: #000000;
+	--bg-green: #28a745;
+	--bg-yellow: #ffc107;
+	--bg-red: #dc3545;
+	--bg-blue: #3b7ddd;
+	--bg-fucsia: #ff00dc;
+	--bg-gray: #6c757d;
+	--bg-body: #f5f9fc;
+	--bg-body-color: #495057;
+	--bg-wrapper: #f5f9fc;
+	--bg-text: #000000;
+	--bg-text-block: #5e7177;
+	--bg-text-title: #444;
+	--bg-input: #f0f0f0;
+	--bg-input-i: #acacac;
+	--bg-input-placeholder: #aaa;
+	--bg-social: #333;
+	--bg-wizard-text: rgb(126,128,131);
+	--border-right-sidebar: hsla(43, 71%, 61%, 1);
+	--color-title-header: hsla(43, 71%, 61%, 1);
+	--margin-top: 25px;
+	--margin-top-sitemap: 0px;
+	--padding-top-sitemap: 65px;
+	--margin-bottom: 71px;
+	--footer-height: 74px;
+	--bg-shell-footer: #fff;
+	--menu-toggler: white;
+	--nav-height: 65px;
+	--scrollbar-width: 15px;
+	--datagrid-tr-header-bg: #f4af68;
+	--datagrid-tr-header-bg-level-2: #f4af68e1;
+	--datagrid-tr-header-bg-level-3: #f4af68c1;
+	--datagrid-tr-header-bg-level-4: #f4af68a1;
+	--datagrid-tr-header-bg-level-5: #f4af6881;
+}
+
 .form-signin {
 	margin: 3rem !important;
 }
@@ -253,49 +296,6 @@ h3, h4 {
 
 .no-freeze-spinner #no-freeze-spinner div div {
 	box-shadow: 0 0 10px white;
-}
-
-:root {
-	/*--bg-primary: #205d83;*/
-	--bg-primary: hsla(203, 61%, 32%, 1);
-	--bg-primary-ps: hsla(203, 61%, 27%, 1) !important;
-	--bg-primary-sbg: hsla(203, 61%, 87%, 0.9) !important;
-	--bg-primary-second: linear-gradient(-45deg, #205d83 0%, #205d83 100%);
-	--bg-white: #ffffff;
-	--bg-black: #000000;
-	--bg-green: #28a745;
-	--bg-yellow: #ffc107;
-	--bg-red: #dc3545;
-	--bg-blue: #3b7ddd;
-	--bg-fucsia: #ff00dc;
-	--bg-gray: #6c757d;
-	--bg-body: #f5f9fc;
-	--bg-body-color: #495057;
-	--bg-wrapper: #f5f9fc;
-	--bg-text: #000000;
-	--bg-text-block: #5e7177;
-	--bg-text-title: #444;
-	--bg-input: #f0f0f0;
-	--bg-input-i: #acacac;
-	--bg-input-placeholder: #aaa;
-	--bg-social: #333;
-	--bg-wizard-text: rgb(126,128,131);
-	--border-right-sidebar: hsla(43, 71%, 61%, 1);
-	--color-title-header: hsla(43, 71%, 61%, 1);
-	--margin-top: 25px;
-	--margin-top-sitemap: 0px;
-	--padding-top-sitemap: 65px;
-	--margin-bottom: 71px;
-	--footer-height: 74px;
-	--bg-shell-footer: #fff;
-	--menu-toggler: white;
-	--nav-height: 65px;
-	--scrollbar-width: 15px;
-	--datagrid-tr-header-bg: #f4af68;
-	--datagrid-tr-header-bg-level-2: #f4af68e1;
-	--datagrid-tr-header-bg-level-3: #f4af68c1;
-	--datagrid-tr-header-bg-level-4: #f4af68a1;
-	--datagrid-tr-header-bg-level-5: #f4af6881;
 }
 
 header h1 {

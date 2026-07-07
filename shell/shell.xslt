@@ -9,14 +9,12 @@ xmlns:xlink="http://www.w3.org/1999/xlink"
 >
 
 	<xsl:template match="/" priority="-1">
-		<section>
-			<script src="shell.js"/>
-			<xsl:apply-templates mode="shell:widget"/>
-		</section>
+		<script src="shell.js"/>
+		<xsl:apply-templates mode="shell:widget"/>
 	</xsl:template>
 
 	<xsl:template match="*|@*" mode="shell:widget">
-		<div id="shell" class="wrapper sitemap_collapsed" xo-silence="@aria-* @data-bs-*">
+		<section id="shell" class="wrapper sitemap_collapsed" xo-silence="@aria-* @data-bs-*">
 			<style>
 				<![CDATA[
 			@media print {
@@ -145,14 +143,14 @@ xmlns:xlink="http://www.w3.org/1999/xlink"
 			<main>
 			</main>
 			<footer class="d-flex flex-wrap justify-content-between align-items-center py-2 px-3 trash-zone">
-				<div id="page_controls" xo-source="active" xo-stylesheet="page_controls.xslt" class="col-md-8 d-flex align-items-center">					
+				<div id="page_controls" xo-source="active" xo-stylesheet="page_controls.xslt" class="col-md-8 d-flex align-items-center">
 				</div>
 				<ul id="shell_buttons" class="nav col-md-4 justify-content-end list-unstyled d-flex" xo-source="active" xo-stylesheet="shell_buttons.xslt">
 				</ul>
 			</footer>
 			<aside class="sidebar" xo-source="#sitemap" xo-stylesheet="sitemap.xslt" id="sitemap"/>
 			<div class="settings" xo-source="#settings" xo-stylesheet="widgets/settings.xslt"/>
-		</div>
+		</section>
 	</xsl:template>
 
 	<xsl:template mode="shell:nav-search" match="*">

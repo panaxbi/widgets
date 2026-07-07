@@ -1,0 +1,292 @@
+﻿<script>
+	xover.listener.on('refresh', async function (target = xover.stores.active) {
+		target.fetch()
+	})
+</script>
+<style>
+	/* ---------- Cursores ---------- */
+
+	/* No seleccionables por default */
+	[is~="excel-selection"] th,
+	[is~="excel-selection"] [scope="row"],
+	[is~="excel-selection"] [scope="col"] {
+		cursor: default;
+	}
+
+	/* Seleccionables por default */
+	[is~="excel-selection"] td:not(:has(a)),
+	[is~="excel-selection"] .cell {
+		cursor: cell;
+	}
+
+	/* Fuerza comportamiento */
+	[is~="excel-selection"] .selectable {
+		cursor: cell !important;
+	}
+
+	[is~="excel-selection"] .unselectable,
+	[is~="excel-selection"] .unselectable td:not(:has(a)),
+	[is~="excel-selection"] .unselectable .cell {
+		cursor: revert !important;
+	}
+
+	/* ---------- Hover ---------- */
+
+	[is~="excel-selection"] td:hover,
+	[is~="excel-selection"] .cell:hover {
+		background-color: aliceblue;
+	}
+
+	[is~="excel-selection"] .unselectable:hover,
+	[is~="excel-selection"] .unselectable:hover td,
+	[is~="excel-selection"] .unselectable:hover .cell {
+		background-color: inherit;
+	}
+
+	/* ---------- Estados ---------- */
+
+	[is~="excel-selection"] .cell.editable.dirty {
+		outline: solid 2pt red;
+	}
+
+	[is~="excel-selection"] .cell.valid {
+		background-color: lime !important;
+	}
+
+	[is~="excel-selection"] .cell.invalid {
+		background-color: yellow !important;
+	}
+
+	/* ---------- Selección ---------- */
+
+	[is~="excel-selection"] .selected {
+		background-color: lightblue !important;
+	}
+
+	[is~="excel-selection"] .selection-begin {
+		outline: solid 2pt blue;
+		outline-offset: -1px;
+	}
+
+	[is~="excel-selection"] .selection-end {
+		/* reservado por si quieres mostrar la celda activa */
+	}
+
+	/* ---------- Bordes ---------- */
+
+	[is~="excel-selection"] .selected.left-selection {
+		border-left: blue 2pt dashed !important;
+	}
+
+	[is~="excel-selection"] .selected.right-selection {
+		border-right: blue 2pt dashed !important;
+	}
+
+	[is~="excel-selection"] .selected.top-selection {
+		border-top: blue 2pt dashed !important;
+	}
+
+	[is~="excel-selection"] .selected.bottom-selection {
+		border-bottom: blue 2pt dashed !important;
+	}
+</style>
+<template role="behavior">
+	<script>
+		constructor.extend({
+			init() {
+				this.selection = {
+					anchor: null,
+					focus: null,
+					cells: new Set()
+				};
+
+				this.cellSelector = this.getAttribute('cell-selector') || 'td,th,.cell';
+
+				this.addEventListener('mousedown', this.excelSelectionMouseDown);
+				this.addEventListener('mouseover', this.excelSelectionMouseMove);
+				document.addEventListener('mouseup', this.excelSelectionMouseUp.bind(this));
+			},
+
+			getCell(target) {
+				const cell = target.closest(this.cellSelector);
+				return cell && this.contains(cell) && this.isSelectableCell(cell) ? cell : null;
+			},
+
+			getSelectionContext(cell) {
+				return cell.closest('table') || this;
+			},
+
+			emitSelectionChange(type = 'selectionchange') {
+				this.dispatchEvent(new CustomEvent(type, {
+					bubbles: true,
+					detail: {
+						selection: this.selection,
+						cells: [...this.selection.cells]
+					}
+				}));
+			},
+
+			renderSelection() {
+				this.querySelectorAll(
+					'.selected,.selection-begin,.selection-end,.left-selection,.right-selection,.top-selection,.bottom-selection'
+				).forEach(cell => {
+					cell.classList.remove(
+						'selected',
+						'selection-begin',
+						'selection-end',
+						'left-selection',
+						'right-selection',
+						'top-selection',
+						'bottom-selection'
+					);
+				});
+
+				for (const cell of this.selection.cells) {
+					cell.classList.add('selected');
+				}
+
+				this.selection.anchor?.classList.add('selection-begin');
+				this.selection.focus?.classList.add('selection-end');
+			},
+
+			clearSelection() {
+				this.selection.anchor = null;
+				this.selection.focus = null;
+				this.selection.cells.clear();
+				this.renderSelection();
+			},
+
+			getCellPosition(cell) {
+				const row = cell.closest('tr');
+
+				if (row && cell.cellIndex != null && row.rowIndex != null) {
+					return {
+						row: row.rowIndex,
+						col: cell.cellIndex
+					};
+				}
+
+				const context = this.getSelectionContext(cell);
+				const cells = [...context.querySelectorAll(this.cellSelector)];
+				const index = cells.indexOf(cell);
+
+				return {
+					row: index,
+					col: 0
+				};
+			},
+
+			getRangeCells(anchor, focus) {
+				const context = this.getSelectionContext(anchor);
+				if (!context || this.getSelectionContext(focus) !== context) return [];
+
+				const a = this.getCellPosition(anchor);
+				const b = this.getCellPosition(focus);
+
+				const minRow = Math.min(a.row, b.row);
+				const maxRow = Math.max(a.row, b.row);
+				const minCol = Math.min(a.col, b.col);
+				const maxCol = Math.max(a.col, b.col);
+
+				return [...context.querySelectorAll(this.cellSelector)].filter(cell => {
+					if (!this.isSelectableCell(cell)) return false;
+
+					const p = this.getCellPosition(cell);
+
+					return p.row >= minRow &&
+						p.row <= maxRow &&
+						p.col >= minCol &&
+						p.col <= maxCol;
+				});
+			},
+
+			applyDragSelection(focus) {
+				const rangeCells = this.getRangeCells(this.__selectionAnchor, focus);
+				const next = new Set(this.__baseSelection);
+
+				if (this.__selectionMode === 'remove') {
+					for (const cell of rangeCells) next.delete(cell);
+				} else {
+					for (const cell of rangeCells) {
+						if (!next.has(cell)) next.add(cell);
+					}
+				}
+
+				this.selection.cells = next;
+
+				if (next.size) {
+					this.selection.anchor = this.__selectionAnchor;
+					this.selection.focus = focus;
+				} else {
+					this.selection.anchor = null;
+					this.selection.focus = null;
+				}
+
+				this.renderSelection();
+				this.emitSelectionChange();
+			},
+
+			excelSelectionMouseDown(event) {
+				if (event.button !== 0) return;
+
+				const cell = this.getCell(event.target);
+				if (!cell) return;
+
+				const ctrl = event.ctrlKey || event.metaKey;
+
+				this.__selecting = true;
+				this.__selectionAnchor = cell;
+				this.__baseSelection = event.ctrlKey || event.metaKey
+					? new Set(this.selection.cells)
+					: new Set();
+
+				if ((event.ctrlKey || event.metaKey) && this.selection.cells.has(cell)) {
+					this.__selectionMode = 'remove';
+				} else {
+					this.__selectionMode = 'add';
+				}
+
+				this.applyDragSelection(cell);
+
+				event.preventDefault();
+				event.stopPropagation();
+			},
+
+			excelSelectionMouseMove(event) {
+				if (!this.__selecting || event.buttons !== 1) return;
+
+				const cell = this.getCell(event.target);
+				if (!cell || cell === this.selection.focus) return;
+
+				this.applyDragSelection(cell);
+
+				event.preventDefault();
+				event.stopPropagation();
+			},
+
+			excelSelectionMouseUp() {
+				if (!this.__selecting) return;
+
+				this.__selecting = false;
+				this.__selectionAnchor = null;
+				this.__baseSelection = null;
+				this.__selectionMode = null;
+
+				this.emitSelectionChange('selectionend');
+			},
+
+			isSelectableCell(cell) {
+				if (!cell) return false;
+
+				const decision = cell.closest('.selectable,.unselectable');
+
+				if (decision) {
+					return decision.classList.contains('selectable');
+				}
+
+				return cell.matches('td,.cell')
+					&& !cell.matches('th,[scope="row"],[scope="col"]');
+			}
+		});
+	</script>
+</template>

@@ -221,9 +221,24 @@ dialog {
 	z-index: 2999;
 }
 
-	dialog menu {
-		margin-block-end: .2rem;
-	}
+dialog menu {
+	margin-block-end: .2rem;
+}
+
+dialog {
+	margin: auto;
+	padding: 0;
+	border: none;
+	max-width: calc(100vw - 2rem);
+	max-height: calc(100vh - 2rem);
+	width: fit-content;
+	overflow: hidden;
+}
+
+dialog > article {
+	overflow: auto;
+	max-height: inherit;
+}
 
 .sorted-asc label::after {
 	content: " \25B2";

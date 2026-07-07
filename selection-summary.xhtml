@@ -1,0 +1,191 @@
+﻿<style>
+	[is~="selection-summary"] {
+		white-space: nowrap;
+		padding-inline: .5em;
+		color: var(--summary-color, #444);
+		font-variant-numeric: tabular-nums;
+	}
+
+	[is~="selection-summary"]::before {
+		content: attr(label);
+		font-size: .85em;
+		font-weight: 500;
+		color: #777;
+		margin-right: .35em;
+	}
+
+	[is~="selection-summary"]:not([label])::before {
+		content: attr(summary);
+		text-transform: capitalize;
+	}
+
+	[is~="selection-summary"]:empty::after {
+		content: "—";
+		opacity: .5;
+	}
+</style>
+<template role="behavior">
+	<script>
+		constructor.extend({
+			init() {
+				this.onSelectionChange = this.updateSelectionSummary.bind(this);
+
+				this.observeAttributes();
+				this.bindSelectionSource();
+				this.updateSelectionSummary();
+			},
+
+			observeAttributes() {
+				this.attributeObserver = new MutationObserver(mutations => {
+					let rebind = false;
+					let refresh = false;
+
+					for (const mutation of mutations) {
+						if (mutation.type !== 'attributes') continue;
+
+						if (mutation.attributeName === 'selection-source') {
+							rebind = true;
+						}
+
+						if (['summary', 'format', 'label', 'selection-source'].includes(mutation.attributeName)) {
+							refresh = true;
+						}
+					}
+
+					if (rebind) this.bindSelectionSource();
+					if (refresh) this.updateSelectionSummary();
+				});
+
+				this.attributeObserver.observe(this, {
+					attributes: true,
+					attributeFilter: ['summary', 'format', 'label', 'selection-source']
+				});
+			},
+
+			bindSelectionSource() {
+				if (this.selectionSource) {
+					this.selectionSource.removeEventListener('selectionchange', this.onSelectionChange);
+				}
+
+				this.selectionSource = this.getSelectionSource();
+
+				if (this.selectionSource) {
+					this.selectionSource.addEventListener('selectionchange', this.onSelectionChange);
+				}
+			},
+
+			getSelectionSource() {
+				const selector = this.getAttribute('selection-source');
+
+				if (selector) {
+					return document.querySelector(selector);
+				}
+
+				return this.closest('[is~="excel-selection"]')
+					|| document.querySelector('[is~="excel-selection"]');
+			},
+
+			formatValue(value) {
+				if (value == null || value === '') return '';
+
+				const format = this.getAttribute('format');
+				if (!format) return value;
+
+				const [type, option] = format.split(':');
+				const numericValue = Number(value);
+
+				switch (type.toLowerCase()) {
+					case 'number':
+						return numericValue.toLocaleString(undefined, {
+							minimumFractionDigits: +(option ?? 0),
+							maximumFractionDigits: +(option ?? 0)
+						});
+
+					case 'currency':
+						return numericValue.toLocaleString(undefined, {
+							style: 'currency',
+							currency: option || 'MXN'
+						});
+
+					case 'percent':
+						return numericValue.toLocaleString(undefined, {
+							style: 'percent',
+							minimumFractionDigits: +(option ?? 0),
+							maximumFractionDigits: +(option ?? 0)
+						});
+
+					case 'date':
+						return new Date(value).toLocaleDateString();
+
+					case 'datetime':
+						return new Date(value).toLocaleString();
+
+					case 'time':
+						return new Date(value).toLocaleTimeString();
+
+					default:
+						return this.applyMask(value, format);
+				}
+			},
+
+			applyMask(value, mask) {
+				if (typeof(window.Format) === 'function') return Format(value, mask);
+				return value;
+			},
+
+			updateSelectionSummary() {
+				const cells = [...(this.selectionSource?.selection?.cells || [])];
+				const values = this.getSelectionValues();
+
+				let result = '';
+
+				switch ((this.getAttribute('summary') || 'count').toLowerCase()) {
+					case 'sum':
+						result = values.reduce((a, b) => a + b, 0);
+						break;
+
+					case 'avg':
+						result = values.length
+							? values.reduce((a, b) => a + b, 0) / values.length
+							: '';
+						break;
+
+					case 'min':
+						result = values.length ? Math.min(...values) : '';
+						break;
+
+					case 'max':
+						result = values.length ? Math.max(...values) : '';
+						break;
+
+					case 'count':
+					default:
+						result = cells.length;
+						break;
+				}
+
+				this.textContent = this.formatValue(result);
+			},
+
+			getSelectionValues() {
+				const cells = [...(this.selectionSource?.selection?.cells || [])];
+
+				return cells
+					.map(cell => {
+						const value = cell.value
+							?? cell.getAttribute('value')
+							?? cell.dataset?.value
+							?? cell.textContent
+							?? '';
+
+						return `${value}`.trim();
+					})
+					.map(value => {
+						value = value.replace(/[$,\s]/g, '');
+						return Number(value);
+					})
+					.filter(value => !Number.isNaN(value));
+			}
+		});
+	</script>
+</template>

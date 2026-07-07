@@ -1,0 +1,80 @@
+﻿<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+<template shadowrootmode="open" value="" size="160" color="#000000" background="#ffffff" ecc="M">
+  <script>
+    constructor.extend({
+      init(content) {
+        this.render()
+      },
+
+      render() {
+
+        if (!window.QRCode)
+          return
+
+        let value =
+          this.getAttribute("value")
+          || this.textContent.trim()
+
+        if (!value)
+          return
+				let content = parts.content
+        content.replaceChildren()
+
+        new QRCode(content, {
+
+          text: value,
+
+          width: +(this.getAttribute("size") || 160),
+
+          height: +(this.getAttribute("size") || 160),
+
+          colorDark:
+            this.getAttribute("color") || "#000000",
+
+          colorLight:
+            this.getAttribute("background") || "#ffffff",
+
+          correctLevel:
+            QRCode.CorrectLevel[
+            (this.getAttribute("ecc") || "M").toUpperCase()
+            ] || QRCode.CorrectLevel.M
+
+        })
+
+      },
+
+      value: {
+
+        set(value) {
+
+          this.setAttribute("value", value ?? "")
+
+          this.render()
+
+          return value
+
+        }
+
+      }
+
+    })
+  </script>
+
+  <style>
+
+    :host {
+      display: inline-block;
+      line-height: 0;
+    }
+
+    canvas,
+    img {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+  </style>
+
+  <div part="content"></div>
+</template>

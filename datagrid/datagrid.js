@@ -628,23 +628,6 @@
         }
     })
 
-    xover.listener.on('click::.datagrid .filterable', function () {
-        //if (!selection.cells.length || selection.cells.concat(this).includes(this.closest('td,.cell'))) {
-        let filters = selection.cells.concat(this).map(cell => cell.scope).reduce((result, scope) => { result[scope.localName] = (result[scope.localName] || []); result[scope.localName].push(scope.value); return result }, {});
-        let scope = this.scope;
-        let model = scope.closest("model");
-        let target = scope.selectSingleNode(`ancestor::*[parent::model]`);
-        if (target.hasAttributeNS('http://panax.io/state/filter', `${scope.localName}`)) {
-            target.removeAttributeNS('http://panax.io/state/filter', `${scope.localName}`)
-            delete filters[scope.localName]
-        }
-
-        for (let key of Object.keys(filters)) {
-            target.setAttributeNS('http://panax.io/state/filter', `filter:${key}`, filters[key].distinct().join("|"))
-        }
-        //    }
-    })
-
     xo.listener.on(`transform::*[.//@filter:*]`, function ({ result }) {
         let table = result.querySelector('table');
         if (!table) return;

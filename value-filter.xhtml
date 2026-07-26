@@ -1,0 +1,276 @@
+<style>
+	[is~="value-filter"] .filterable {
+		cursor: pointer;
+	}
+	[is~="value-filter"] .filterable.value-filter-active {
+		outline: 2px solid #2563eb;
+		outline-offset: -2px;
+		background-color: rgba(37, 99, 235, .12);
+	}
+</style>
+<template role="behavior">
+	<script>
+		const filterNamespace = 'http://panax.io/state/filter';
+		const filterNodeNamespace = 'http://panax.io/state/filter/node';
+		const filterPathNamespace = 'http://panax.io/state/filter/path';
+		const stateNamespace = 'http://panax.io/state';
+
+		function value_filter_click({ value, scope, context }) { }
+		xo.listener.on('value-filter:click', value_filter_click)
+
+		function filter_set_selector(value) {
+			value = `${value || ''}`.trim();
+			return value.indexOf('set:') == 0 ? value.substring(4).trim() : null;
+		}
+
+		function filter_base_selector(selector) {
+			let base = '';
+			let depth = 0;
+			let quote = null;
+			for (const char of selector) {
+				if (quote) {
+					if (char == quote) quote = null;
+					continue;
+				}
+				if (char == '"' || char == "'") {
+					quote = char;
+					if (!depth) base += char;
+					continue;
+				}
+				if (char == '[') {
+					depth++;
+					continue;
+				}
+				if (char == ']') {
+					depth = Math.max(0, depth - 1);
+					continue;
+				}
+				if (!depth) base += char;
+			}
+			return base.trim();
+		}
+
+		function mark_nodes_in_set(value) {
+			const selector = filter_set_selector(value);
+			if (!selector) return false;
+			const selected = this.select(selector) || [];
+			const base_selector = filter_base_selector(selector);
+			const candidates = base_selector ? this.select(base_selector) || [] : [];
+			for (const node of candidates) {
+				node.removeAttributeNS(stateNamespace, 'filtered');
+			}
+			for (const node of selected) {
+				node.setAttributeNS(stateNamespace, 'state:filtered', 'true');
+			}
+			return true;
+		}
+
+		xo.listener.on('beforeTransform::*[.//@filter:*]', function () {
+			for (const attr of this.select('//@filter:*')) {
+				const target = attr.parentNode;
+				if (mark_nodes_in_set.call(target, attr.value)) {
+					continue;
+				}
+				const key = attr.localName;
+				const nodePath = target.getAttributeNS(filterNodeNamespace, key);
+				const valuePath = target.getAttributeNS(filterPathNamespace, key);
+
+				if (!nodePath || !valuePath) continue;
+
+				const values = attr.value
+					.split('|')
+					.map(value => value.trim())
+					.filter(value => value ? value !== '*' : false);
+
+				for (const node of target.select(nodePath)) {
+					const matches = node.select(valuePath);
+					const keep = values.length
+						? matches.some(match => values.includes(`${match.value ?? match.textContent ?? match}`.trim()))
+						: matches.length > 0;
+
+					if (!keep) node.remove();
+				}
+
+			}
+		}, { priority: -2 });
+
+		constructor.extend({
+			init() {
+				this.valueFilterSelector = this.getAttribute('filter-selector') || '.filterable';
+				this.valueFilterNamespace = 'http://panax.io/state/filter';
+				this.valueFilterNodeNamespace = 'http://panax.io/state/filter/node';
+				this.valueFilterPathNamespace = 'http://panax.io/state/filter/path';
+				this.addEventListener('click', this.valueFilterClick);
+			},
+
+			valueFilterClick(event) {
+				const trigger = event.target.closest(this.valueFilterSelector);
+				if (!trigger || !this.contains(trigger)) return;
+				let target = this.scope;
+				let scope = trigger.scope || this.getValueFilterScope(trigger) || this.scope;
+				let filter_value = trigger.getAttribute("xo-scope");
+				if (instanceOf.call(scope, Array)) {
+					let previous_filter = target.getAttributeNS(filterNamespace, "scope");
+					if (previous_filter === filter_value) {
+						target.removeAttributeNS(filterNamespace, "scope");
+						trigger.classList.remove("value-filter-active");
+					} else {
+						target.setAttributeNS(filterNamespace, `filter:scope`, filter_value);
+						this.querySelectorAll(".value-filter-active").forEach(node => node.classList.remove("value-filter-active"));
+						trigger.classList.add("value-filter-active");
+					}
+				}
+				//for (const [target, filters] of this.groupValueFilterEntries(this.getValueFilterEntries(trigger))) {
+				//	for (const key of Object.keys(filters)) {
+				//		const filter = filters[key];
+				//		const value = this.getDistinctValueFilterValues(filter.values).join('|');
+				//		if (target.getAttributeNS(this.valueFilterNamespace, key) === value) {
+				//			this.removeValueFilter(target, key);
+				//			continue;
+				//		}
+				//		target.setAttributeNS(
+				//			this.valueFilterNamespace,
+				//			`filter:${key}`,
+				//			value
+				//		);
+				//		if (filter.nodePath) {
+				//			target.setAttributeNS(filterNodeNamespace, `filter-node:${key}`, filter.nodePath);
+				//		}
+				//		if (filter.valuePath) {
+				//			target.setAttributeNS(filterPathNamespace, `filter-path:${key}`, filter.valuePath);
+				//		}
+				//	}
+				//}
+
+				trigger.dispatch('value-filter:click', {
+					value: trigger.value ?? trigger.getAttribute('value') ?? trigger.dataset?.value ?? trigger.textContent
+					, scope: scope
+					, context: this
+
+				});
+			},
+
+			getValueFilterEntries(trigger) {
+				const explicitFilter = this.getExplicitValueFilter(trigger);
+				if (explicitFilter) return [explicitFilter];
+
+				const selectedCells = [...(this.selection?.cells || [])];
+				const triggerCell = trigger.closest('td,.cell') || trigger;
+				const cells = selectedCells.includes(triggerCell)
+					? selectedCells
+					: selectedCells.concat(trigger);
+
+				return cells
+					.map(cell => cell.scope)
+					.filter(scope => scope ? scope.localName : false)
+					.map(scope => ({
+						target: this.getValueFilterTarget(scope),
+						name: scope.localName,
+						values: [scope.value]
+					}))
+					.filter(filter => filter.target ? filter.name : false);
+			},
+
+			getExplicitValueFilter(trigger) {
+				const nodePath = trigger.getAttribute('filter-node') || this.getAttribute('filter-node');
+				const valuePath = trigger.getAttribute('filter-path') || this.getAttribute('filter-path');
+				const values = trigger.getAttribute('filter-value') || trigger.getAttribute('filter-values');
+				const hasDefinition = nodePath || valuePath || values;
+
+				if (!hasDefinition) return null;
+
+				const name = trigger.getAttribute('filter-name')
+					|| this.getAttribute('filter-name')
+					|| this.getValueFilterName(valuePath || nodePath);
+				const target = this.getExplicitValueFilterTarget(trigger);
+
+				return {
+					target,
+					name,
+					nodePath,
+					valuePath,
+					values: this.getExplicitValueFilterValues(trigger, values)
+				};
+			},
+
+			getExplicitValueFilterValues(trigger, values) {
+				if (values != null) {
+					return values.split('|').map(value => value.trim()).filter(Boolean);
+				}
+
+				const value = trigger.value
+					?? trigger.getAttribute('value')
+					?? trigger.dataset?.value
+					?? trigger.textContent
+					?? '*';
+
+				return [`${value}`.trim() || '*'];
+			},
+
+			getExplicitValueFilterTarget(trigger) {
+				const selector = trigger.getAttribute('filter-target') || this.getAttribute('filter-target');
+				const scope = this.getValueFilterScope(trigger);
+
+				if (selector) {
+					return this.selectValueFilterNode(scope, selector)
+						|| this.selectValueFilterNode(scope?.ownerDocument, selector)
+						|| this.selectValueFilterNode(this.store || trigger.store || xover.stores?.active, selector);
+				}
+
+				return this.getValueFilterTarget(scope);
+			},
+
+			getValueFilterScope(trigger) {
+				for (let node = trigger; node ? node !== this.parentNode : false; node = node.parentElement) {
+					if (node.scope) return node.scope;
+				}
+
+				return this.scope;
+			},
+
+			selectValueFilterNode(node, selector) {
+				return node?.selectSingleNode?.(selector)
+					|| node?.selectFirst?.(selector)
+					|| node?.select?.(selector)?.[0];
+			},
+
+			getValueFilterName(path = '') {
+				const match = `${path}`.match(/@([\w.-]+)(?:[^\w.-]*)$/);
+				return match?.[1] || 'value';
+			},
+
+			groupValueFilterEntries(entries) {
+				const targets = new Map();
+
+				for (const entry of entries) {
+					if (!entry.target || !entry.name) continue;
+
+					const filters = targets.get(entry.target) || {};
+					filters[entry.name] = filters[entry.name] || {
+						values: [],
+						nodePath: entry.nodePath,
+						valuePath: entry.valuePath
+					};
+					filters[entry.name].values.push(...entry.values);
+					targets.set(entry.target, filters);
+				}
+
+				return targets;
+			},
+
+			getDistinctValueFilterValues(values) {
+				return [...new Set(values)];
+			},
+
+			removeValueFilter(target, key) {
+				target.removeAttributeNS(this.valueFilterNamespace, key);
+				target.removeAttributeNS(this.valueFilterNodeNamespace, key);
+				target.removeAttributeNS(this.valueFilterPathNamespace, key);
+			},
+
+			getValueFilterTarget(scope) {
+				return scope?.selectSingleNode?.('ancestor-or-self::*[parent::model]');
+			}
+		});
+	</script>
+</template>

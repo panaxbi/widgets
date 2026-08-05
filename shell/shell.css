@@ -1783,21 +1783,23 @@ aside {
 }
 
 #shell header {
-	padding-left: var(--width-sitemap, 300px)
+	padding-left: var(--width-sitemap, 300px);
+	position: absolute;
 }
 
 	#shell header h1 {
 		margin: .6rem 1.25rem;
 	}
 
-header .textos-header {
-	display: flex;
-	height: 430px;
-	width: 100%;
-	align-items: center;
-	justify-content: center;
-	flex-direction: column;
-	text-align: center;
+@media (orientation: portrait) {
+	#shell header {
+		padding-left: 8rem !important;
+		margin-top: 1rem !important;
+	}
+
+		#shell header h1 {
+			font-size: 1.75rem !important;
+		}
 }
 
 .textos-header h1 {
@@ -2977,3 +2979,8 @@ header [class*="__inferior"] .box__mobile {
 }
 
 /*---------------------------------------*/
+#shell > footer {
+	border-top: 1px solid rgba(0,0,0,.1);
+	background: rgba(255,255,255,.95);
+	box-shadow: 0 -2px 8px rgba(0,0,0,.05);
+}

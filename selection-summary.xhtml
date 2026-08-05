@@ -70,7 +70,10 @@
 				this.selectionSource = this.getSelectionSource();
 
 				if (this.selectionSource) {
+					this.classList.remove("hidden")
 					this.selectionSource.addEventListener('selectionchange', this.onSelectionChange);
+				} else {
+					this.classList.add("hidden")
 				}
 			},
 

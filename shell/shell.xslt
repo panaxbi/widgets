@@ -66,7 +66,7 @@ xmlns:xlink="http://www.w3.org/1999/xlink"
 				#shell > header h1 {
 					color: var(--color-title-header);
 					margin-bottom: 0;
-					margin-left: 5px;
+					margin-left: 1.5rem;
 					text-align: center;
                     position: fixed;
 				}
@@ -85,6 +85,24 @@ xmlns:xlink="http://www.w3.org/1999/xlink"
 				nav.navbar .menu_toggle {
 					color: silver; 
 					cursor:wait;
+				}
+
+				#shell > nav.navbar .navbar-collapse > :last-child {
+					margin-left: auto;
+				}
+
+				#shell > nav.navbar [xo-source="#menu"] {
+					display: flex;
+					align-items: center;
+					margin-left: auto;
+				}
+
+				#shell > nav.navbar [xo-source="#menu"] > * {
+					margin-left: auto;
+				}
+
+				#shell > nav.navbar .ml-auto {
+					margin-left: auto !important;
 				}
 				
 				#shell > * {
@@ -106,64 +124,52 @@ xmlns:xlink="http://www.w3.org/1999/xlink"
         .page-menu {
 					min-height: max-content;
         }
+				
+				nav .logo { max-height: 40px; }
 				]]>
 			</style>
 			<xsl:apply-templates mode="shell:nav-title" select="."/>
 			<nav class="navbar navbar-expand navbar-light" style="padding:.6rem 1.25rem; position: sticky;">
-				<span class="menu_toggle" style="font-size:30px;" onclick="toggleSidebar()">
+				<span class="menu_toggle" style="font-size:30px; margin-right: .5rem;" onclick="toggleSidebar()">
 					&#9776;
 				</span>
 				<div class="navbar-collapse collapse">
 					<div>
 						<!--Logo-->
 						<a href="/" title="Ir a la página principal">
-							<img id="logo" class="logo" src="assets/logo.png" height="40px" xo:use-attribute-sets="shell:logo"/>
+							<img id="logo" class="logo" src="assets/logo.png" xo:use-attribute-sets="shell:logo"/>
 						</a>
 					</div>
 					<div class="anteanter_section search"></div>
-					<div class="">
-						<ul class="navbar-nav ml-auto">
-							<li class="nav-item dropdown">
-								<a class="nav-icon dropdown-toggle d-inline-block d-sm-none" href="#" data-toggle="dropdown">
-									<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-settings align-middle">
-										<circle cx="12" cy="12" r="3"></circle>
-										<path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
-									</svg>
-								</a>
-
-								<span xo-store="#menu">
-								</span>
-
-							</li>
-						</ul>
-					</div>
+					<span xo-source="#menu">
+					</span>
 				</div>
 			</nav>
-			<span class="page-menu" xo-source="active" xo-stylesheet="page_navbar.xslt"/>
+			<span class="page-menu" xo-source="active" xo-stylesheet="../page_navbar.xslt"/>
 			<main>
 			</main>
 			<footer class="d-flex flex-wrap justify-content-between align-items-center py-2 px-3 trash-zone">
-				<div id="page_controls" xo-source="active" xo-stylesheet="page_controls.xslt" class="col-md-8 d-flex align-items-center">
+				<div id="page_controls" xo-source="active" xo-stylesheet="../page_controls.xslt" class="col-md-8 d-flex align-items-center">
 				</div>
-				<ul id="shell_buttons" class="nav col-md-4 justify-content-end list-unstyled d-flex" xo-source="active" xo-stylesheet="shell_buttons.xslt">
+				<ul id="shell_buttons" class="nav col-md-4 justify-content-end list-unstyled d-flex" xo-source="active" xo-stylesheet="../shell_buttons.xslt">
 				</ul>
 			</footer>
-			<aside class="sidebar" xo-source="#sitemap" xo-stylesheet="sitemap.xslt" id="sitemap"/>
-			<div class="settings" xo-source="#settings" xo-stylesheet="widgets/settings.xslt"/>
+			<aside class="sidebar" xo-source="#sitemap" xo-stylesheet="../sitemap.xslt" id="sitemap"/>
+			<div class="settings" xo-source="#settings" xo-stylesheet="../settings.xslt"/>
 		</section>
 	</xsl:template>
 
 	<xsl:template mode="shell:nav-search" match="*">
 		<div class="anteanter_section search">
 			<section class="section_nav navbar-form navbar-left hpadding0 hmargecontenidozul" method="GET" id="frmBuscador">
-				<div id="sitemap_horizontal" xo-source="#sitemap" xo-stylesheet="sitemap_horizontal.xslt"/>
+				<div id="sitemap_horizontal" xo-source="#sitemap" xo-stylesheet="../sitemap_horizontal.xslt"/>
 			</section>
 		</div>
 	</xsl:template>
 
 	<xsl:template mode="shell:nav-title" match="*">
 		<header>
-			<h1 xo-source="#sitemap" xo-stylesheet="widgets/title.xslt"></h1>
+			<h1 xo-source="#sitemap" xo-stylesheet="../title.xslt"></h1>
 		</header>
 	</xsl:template>
 

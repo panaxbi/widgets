@@ -147,7 +147,6 @@
 			}
 			, filter(event) {
 				let host = self;
-				if (host.constructor != constructor) return;
 				let input = host.parts.search;
 				if (event.type == 'input') {
 					host.parts.dropdown.classList.add("show");
@@ -222,7 +221,6 @@
 				toggler && new bootstrap.Dropdown(toggler).hide();
 			}, keyup(event) {
 				let host = self;
-				if (host.constructor != constructor) return;
 				if ([' '].includes(event.key) && !event.ctrlKey) {
 					event.preventDefault()
 					event.stopImmediatePropagation();
@@ -274,7 +272,6 @@
 					event.preventDefault() //prevents caret from moving end or home
 				} 
 				let host = self;
-				if (host.constructor != constructor) return;
 				if (!['Tab', 'Enter'].includes(event.key)) return;
 				let dropdown = host.parts.body;
 				let optionsList = dropdown && dropdown.querySelector('.dropdown-menu.show');
@@ -285,7 +282,6 @@
 				self.selectOption(active_item);
 			}, showAllOptions() {
 				let host = self || {};
-				if (host.constructor != constructor) return;
 				let input = host.parts.search;
 				let select = host.parts.select;
 				select.querySelectorAll('.clear-option,.option-divider').remove();
@@ -315,7 +311,6 @@
 
 			}, dropdownHidden() {
 				let host = self || {};
-				if (host.constructor != constructor) return;
 				let input = host.parts.search;
 				if (this !== document.activeElement && this.contains(document.activeElement)) {
 					event.preventDefault();

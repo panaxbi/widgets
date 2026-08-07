@@ -71,32 +71,32 @@
 	<script>
 		constructor.extend({
 			init() {
-				if (!(this.parts.search && this.parts.select)) return;
-				this.value = [...this.parts.select.selectedOptions].map(option => option.value).join(", ") || this.value || "";
-				this.parts.search.addEventListener('input', this.filter)
-				this.parts.search.addEventListener('focusin', this.filter)
-				this.parts.search.addEventListener('keyup', this.keyup)
-				this.parts.search.addEventListener('keydown', this.keydown)
-				this.parts.select.addEventListener('change', this.change)
-				this.parts.toggler.addEventListener('shown.bs.dropdown', this.showAllOptions)
-				this.parts.toggler.addEventListener('hide.bs.dropdown', this.dropdownHidden)
+				if (!(self.parts.search && self.parts.select)) return;
+				this.value = [...self.parts.select.selectedOptions].map(option => option.value).join(", ") || this.value || "";
+				self.parts.search.addEventListener('input', this.filter)
+				self.parts.search.addEventListener('focusin', this.filter)
+				self.parts.search.addEventListener('keyup', this.keyup)
+				self.parts.search.addEventListener('keydown', this.keydown)
+				self.parts.select.addEventListener('change', this.change)
+				self.parts.toggler.addEventListener('shown.bs.dropdown', this.showAllOptions)
+				self.parts.toggler.addEventListener('hide.bs.dropdown', this.dropdownHidden)
 			}
 			, options: {
 				get() {
-					return this.parts.select.options;
+					return self.parts.select.options;
 				}
 			}
 			, selectedIndex: {
 				get() {
-					return this.parts.select.selectedIndex;
+					return self.parts.select.selectedIndex;
 				}
 			}
 			, selectOption() {
-				let dropdown = this.parts.body;
-				let combo = this.parts.select;
+				let dropdown = self.parts.body;
+				let combo = self.parts.select;
 				combo.classList.remove("filtered");
-				let selectedOptions = this.parts.select.selectedOptions;
-				let input = this.parts.search;
+				let selectedOptions = self.parts.select.selectedOptions;
+				let input = self.parts.search;
 				input.searchText = ''
 				let value = [...selectedOptions].map(option => option.value).join(", ");
 				if ([...selectedOptions].filter(option => option.matches(".clear-option")).length) value = '';
@@ -117,16 +117,19 @@
 			}
 			, value: {
 				set(input) {
-					//this.parts.select.value = input;
+					//self.parts.select.value = input;
 					this.setAttribute("value", input);
 					this.syncSelection();
+				},
+				get() {
+					return this.getAttribute("value")
 				}
 			}
 			, text: {
 				set(input) {
 					this.setAttribute("text", input)
-					this.parts.search.placeholder = input;
-					this.parts.search.value = input;
+					self.parts.search.placeholder = input;
+					self.parts.search.value = input;
 				}
 			}
 			, separator: {
@@ -140,12 +143,11 @@
 			, syncSelection() {
 				let selection = this.value.split(this.separator);
 				[...this.options].forEach(option => option.selected = selection.includes(option.value));
-				this.text = [...this.parts.select.selectedOptions].map(option => option.text).join(", ") || "";
+				this.text = [...self.parts.select.selectedOptions].map(option => option.text).join(", ") || "";
 			}
 			, filter(event) {
-				let host = this.host;
+				let host = self;
 				if (host.constructor != constructor) return;
-				let self = this;
 				let input = host.parts.search;
 				if (event.type == 'input') {
 					host.parts.dropdown.classList.add("show");
@@ -154,8 +156,8 @@
 				let searchText = ['focus', 'focusin'].includes(event.type) ? (input.searchText || input.value) : input.value || '';
 				//console.log(event.type+': '+input.searchText)
 				let dropdown = host.parts.body;
-				let optionsList = self.ownerDocument.contains(self.optionsList) && self.optionsList || dropdown.querySelector('.dropdown-menu');
-				self.optionsList = optionsList;
+				let optionsList = this.ownerDocument.contains(this.optionsList) && this.optionsList || dropdown.querySelector('.dropdown-menu');
+				this.optionsList = optionsList;
 				let options = optionsList.querySelectorAll("li,option");
 				optionsList.classList.remove("filtered");
 				let option_group = optionsList.querySelector("optgroup");
@@ -195,12 +197,12 @@
 				if (value !== undefined) {
 					this.syncSelection()
 				}
-				this.host.selectOption()
+				self.selectOption()
 			}
 			, focusin(event) {
 				event.preventDefault();
 				event.stopPropagation();
-				let host = this.host;
+				let host = self;
 				let srcElement = this;
 				let input = host.parts.search;
 				debugger
@@ -219,17 +221,17 @@
 				}
 				toggler && new bootstrap.Dropdown(toggler).hide();
 			}, keyup(event) {
-				let host = this.host;
+				let host = self;
 				if (host.constructor != constructor) return;
 				if ([' '].includes(event.key) && !event.ctrlKey) {
 					event.preventDefault()
 					event.stopImmediatePropagation();
 				}
 				if ((event.ctrlKey || event.altKey && !['ArrowDown', 'ArrowUp', 'End', 'Home'].includes(event.key) || event.shiftKey) || !['ArrowDown', 'ArrowUp', 'End', 'Home', 'Escape', 'PageDown', 'PageUp'].includes(event.key)) return;
-				let self = event.srcElement;
+				let target = event.srcElement;
 				let dropdown = host.parts.body;
-				let optionsList = self.optionsList || dropdown.querySelector('.dropdown-menu');
-				self.optionsList = optionsList;
+				let optionsList = target.optionsList || dropdown.querySelector('.dropdown-menu');
+				target.optionsList = optionsList;
 
 				filtered_options = optionsList.querySelectorAll("li, option").toArray().filter(option => !(option.style.display == 'none' || option.matches('.hidden')));
 
@@ -271,7 +273,7 @@
 				if (!event.shiftKey && ['ArrowDown', 'ArrowUp'].includes(event.key) || event.altKey && ['End', 'Home'].includes(event.key)) {
 					event.preventDefault() //prevents caret from moving end or home
 				} 
-				let host = this.host;
+				let host = self;
 				if (host.constructor != constructor) return;
 				if (!['Tab', 'Enter'].includes(event.key)) return;
 				let dropdown = host.parts.body;
@@ -280,9 +282,9 @@
 				let toggler = dropdown.querySelector("[data-bs-toggle]");
 				toggler && new bootstrap.Dropdown(toggler).hide();
 				let active_item = optionsList.querySelectorAll("li, option").toArray().filter(option => !(option.disabled || option.classList.contains("disabled")) && (option.selected || option.classList.contains("active"))).pop();
-				this.host.selectOption(active_item);
+				self.selectOption(active_item);
 			}, showAllOptions() {
-				let host = this.host || {};
+				let host = self || {};
 				if (host.constructor != constructor) return;
 				let input = host.parts.search;
 				let select = host.parts.select;
@@ -312,7 +314,7 @@
 				(select.selectedOptions[0] || document.createElement('p')).scrollIntoView();
 
 			}, dropdownHidden() {
-				let host = this.host || {};
+				let host = self || {};
 				if (host.constructor != constructor) return;
 				let input = host.parts.search;
 				if (this !== document.activeElement && this.contains(document.activeElement)) {

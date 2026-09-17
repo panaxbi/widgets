@@ -101,3 +101,8 @@ xo.listener.on('logout', async function () {
     }
   }
 });
+
+xover.listener.on('login', function () {
+  xover.stores['#login'].resume();
+  xover.site.sections["#login"].forEach(el => el.remove())
+});

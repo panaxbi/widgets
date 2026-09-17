@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:cfdi="http://www.sat.gob.mx/cfd/4" exclude-result-prefixes="cfdi">
+<xsl:template match="@Moneda | @MonedaP | @MonedaDR" mode="cfdi:catalog-label"><xsl:value-of select="."/><xsl:choose><xsl:when test=".='MXN'"> - Peso mexicano</xsl:when><xsl:when test=".='USD'"> - Dólar estadounidense</xsl:when><xsl:when test=".='EUR'"> - Euro</xsl:when><xsl:when test=".='XXX'"> - Sin moneda</xsl:when></xsl:choose></xsl:template>
+<xsl:template match="@FormaPago | @FormaDePagoP" mode="cfdi:catalog-label"><xsl:value-of select="."/><xsl:choose><xsl:when test=".='01'"> - Efectivo</xsl:when><xsl:when test=".='02'"> - Cheque nominativo</xsl:when><xsl:when test=".='03'"> - Transferencia electrónica de fondos</xsl:when><xsl:when test=".='04'"> - Tarjeta de crédito</xsl:when><xsl:when test=".='05'"> - Monedero electrónico</xsl:when><xsl:when test=".='06'"> - Dinero electrónico</xsl:when><xsl:when test=".='08'"> - Vales de despensa</xsl:when><xsl:when test=".='12'"> - Dación en pago</xsl:when><xsl:when test=".='13'"> - Pago por subrogación</xsl:when><xsl:when test=".='14'"> - Pago por consignación</xsl:when><xsl:when test=".='15'"> - Condonación</xsl:when><xsl:when test=".='17'"> - Compensación</xsl:when><xsl:when test=".='23'"> - Novación</xsl:when><xsl:when test=".='24'"> - Confusión</xsl:when><xsl:when test=".='25'"> - Remisión de deuda</xsl:when><xsl:when test=".='26'"> - Prescripción o caducidad</xsl:when><xsl:when test=".='27'"> - A satisfacción del acreedor</xsl:when><xsl:when test=".='28'"> - Tarjeta de débito</xsl:when><xsl:when test=".='29'"> - Tarjeta de servicios</xsl:when><xsl:when test=".='30'"> - Aplicación de anticipos</xsl:when><xsl:when test=".='31'"> - Intermediario pagos</xsl:when><xsl:when test=".='99'"> - Por definir</xsl:when></xsl:choose></xsl:template>
+<xsl:template match="@MetodoPago" mode="cfdi:catalog-label"><xsl:value-of select="."/><xsl:choose><xsl:when test=".='PUE'"> - Pago en una sola exhibición</xsl:when><xsl:when test=".='PPD'"> - Pago en parcialidades o diferido</xsl:when></xsl:choose></xsl:template>
+<xsl:template match="@Impuesto | @ImpuestoDR | @ImpuestoP" mode="cfdi:catalog-label"><xsl:value-of select="."/><xsl:choose><xsl:when test=".='001'"> - ISR</xsl:when><xsl:when test=".='002'"> - IVA</xsl:when><xsl:when test=".='003'"> - IEPS</xsl:when></xsl:choose></xsl:template>
+<xsl:template match="@ObjetoImp | @ObjetoImpDR" mode="cfdi:catalog-label"><xsl:value-of select="."/><xsl:choose><xsl:when test=".='01'"> - No objeto de impuesto</xsl:when><xsl:when test=".='02'"> - Sí objeto de impuesto</xsl:when><xsl:when test=".='03'"> - Sí objeto del impuesto y no obligado al desglose</xsl:when><xsl:when test=".='04'"> - Sí objeto del impuesto y no causa impuesto</xsl:when></xsl:choose></xsl:template>
+<xsl:template match="@TipoCambio | @TipoCambioP" mode="cfdi:exchange-rate">
+  <xsl:variable name="currency" select="../@Moneda | ../@MonedaP"/>
+  <xsl:choose>
+    <xsl:when test="string($currency) != '' and $currency != 'XXX'">
+      <xsl:text>1 </xsl:text><xsl:value-of select="$currency"/><xsl:text> = </xsl:text><xsl:value-of select="."/><xsl:text> MXN</xsl:text>
+    </xsl:when>
+    <xsl:otherwise><xsl:value-of select="."/></xsl:otherwise>
+  </xsl:choose>
+</xsl:template>
+</xsl:stylesheet>

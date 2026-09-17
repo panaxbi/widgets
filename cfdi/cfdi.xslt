@@ -14,6 +14,7 @@
 	<xsl:decimal-format name="mxn" decimal-separator="." grouping-separator=","/>
 
 	<xsl:include href="sections/header.xslt"/>
+	<xsl:include href="sections/catalogos.xslt"/>
 	<xsl:include href="sections/parties.xslt"/>
 	<xsl:include href="sections/comprobante.xslt"/>
 	<xsl:include href="sections/conceptos.xslt"/>
@@ -31,23 +32,20 @@
 	<xsl:template match="*[not(*)]" mode="factura:widget"/>
 
 	<xsl:template match="cfdi:Comprobante" mode="factura:widget">
-		<div class="xover-widget xover-widget-cfdi cfdi-sat" data-widget="widgets/cfdi" data-cfdi-version="{@Version}">
-			<link rel="stylesheet" href="cfdi.css?v=270127_2356" />
+		<div class="xover-widget xover-widget-cfdi cfdi-sat cfdi-reference" data-widget="widgets/cfdi" data-cfdi-version="{@Version}">
+			<link rel="stylesheet" href="cfdi.css?v=260917_01" />
 			<xsl:apply-templates select="." mode="cfdi:header"/>
 			<main class="cfdi-body">
-				<section class="cfdi-main-grid" aria-label="Datos principales del comprobante">
-					<xsl:apply-templates select="." mode="cfdi:parties"/>
-					<xsl:apply-templates select="." mode="cfdi:comprobante"/>
-				</section>
-				<xsl:apply-templates select="cfdi:Conceptos" mode="cfdi:conceptos"/>
-				<xsl:apply-templates select="cfdi:Impuestos" mode="cfdi:impuestos"/>
+
 				<xsl:apply-templates select="cfdi:Complemento/pago20:Pagos" mode="cfdi:pagos20"/>
-				<xsl:apply-templates select="." mode="cfdi:totales"/>
-				<section class="cfdi-certification-grid" aria-label="Certificación digital">
-					<xsl:apply-templates select="cfdi:Complemento/tfd:TimbreFiscalDigital" mode="cfdi:timbre"/>
-					<xsl:apply-templates select="cfdi:Complemento/tfd:TimbreFiscalDigital" mode="cfdi:qr"/>
-				</section>
-				<xsl:apply-templates select="." mode="cfdi:sellos"/>
+				<xsl:apply-templates select="cfdi:Conceptos" mode="cfdi:conceptos"/>
+				<xsl:if test="cfdi:Impuestos"><details class="cfdi-global-tax-details"><summary>Ver desglose global de impuestos</summary><xsl:apply-templates select="cfdi:Impuestos" mode="cfdi:impuestos"/></details></xsl:if>
+				<div class="cfdi-settlement"><section class="cfdi-payment-method" aria-label="Condiciones de pago"><xsl:call-template name="cfdi-field"><xsl:with-param name="label">Moneda:</xsl:with-param><xsl:with-param name="value"><xsl:apply-templates select="@Moneda" mode="cfdi:catalog-label"/></xsl:with-param></xsl:call-template><xsl:call-template name="cfdi-field"><xsl:with-param name="label">Forma de pago:</xsl:with-param><xsl:with-param name="value"><xsl:apply-templates select="@FormaPago" mode="cfdi:catalog-label"/></xsl:with-param></xsl:call-template><xsl:call-template name="cfdi-field"><xsl:with-param name="label">M&#233;todo de pago:</xsl:with-param><xsl:with-param name="value"><xsl:apply-templates select="@MetodoPago" mode="cfdi:catalog-label"/></xsl:with-param></xsl:call-template><xsl:if test="@TipoCambio and not(@Moneda='MXN' and number(@TipoCambio)=1)"><xsl:call-template name="cfdi-field"><xsl:with-param name="label">Tipo de cambio:</xsl:with-param><xsl:with-param name="value"><xsl:apply-templates select="@TipoCambio" mode="cfdi:exchange-rate"/></xsl:with-param></xsl:call-template></xsl:if></section><xsl:apply-templates select="." mode="cfdi:totales"/></div>
+<section class="cfdi-reference-seals" aria-label="Sellos digitales"><xsl:apply-templates select="." mode="cfdi:sello-cfd"/><xsl:apply-templates select="cfdi:Complemento/tfd:TimbreFiscalDigital" mode="cfdi:sello-sat"/></section>
+<section class="cfdi-reference-certification" aria-label="Certificaci&#243;n digital">
+<xsl:apply-templates select="cfdi:Complemento/tfd:TimbreFiscalDigital" mode="cfdi:qr"/>
+<div><xsl:apply-templates select="cfdi:Complemento/tfd:TimbreFiscalDigital" mode="cfdi:cadena-original"/><xsl:apply-templates select="cfdi:Complemento/tfd:TimbreFiscalDigital" mode="cfdi:timbre"/></div>
+</section><footer class="cfdi-print-note">Este documento es una representaci&#243;n impresa de un CFDI</footer>
 			</main>
 		</div>
 	</xsl:template>
@@ -81,20 +79,26 @@
 	<xsl:template name="cfdi-money">
 		<xsl:param name="value"/>
 		<xsl:choose>
+			<xsl:when test="number($value) = 0"><xsl:text>0.00</xsl:text></xsl:when>
 			<xsl:when test="string($value) != ''">
 				<xsl:value-of select="format-number(number($value), '#,##0.00', 'mxn')"/>
 			</xsl:when>
-			<xsl:otherwise>0.00</xsl:otherwise>
+			<xsl:otherwise>&#8212;</xsl:otherwise>
 		</xsl:choose>
 	</xsl:template>
 
 	<xsl:template name="cfdi-rate">
-		<xsl:param name="value"/>
-		<xsl:choose>
-			<xsl:when test="string($value) != ''">
-				<xsl:value-of select="format-number(number($value), '0.000000')"/>
-			</xsl:when>
-			<xsl:otherwise>-</xsl:otherwise>
-		</xsl:choose>
-	</xsl:template>
+        <xsl:param name="value"/>
+        <xsl:param name="factor" select="@TipoFactor | @TipoFactorDR | @TipoFactorP"/>
+        <xsl:choose>
+            <xsl:when test="string($value) = ''">-</xsl:when>
+            <xsl:when test="$factor = 'Tasa'">
+                <xsl:value-of select="format-number(number($value) * 100, '0.00##')"/>
+                <xsl:text>%</xsl:text>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:value-of select="format-number(number($value), '0.000000')"/>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:template>
 </xsl:stylesheet>

@@ -1,5 +1,3 @@
-﻿<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-
 <template shadowrootmode="open" value="" size="160" color="#000000" background="#ffffff" ecc="M">
   <script>
     constructor.extend({
@@ -7,41 +5,46 @@
         this.render()
       },
 
-      render() {
-
-        if (!window.QRCode)
-          return
-
-        let value =
-          this.getAttribute("value")
-          || this.textContent.trim()
-
-        if (!value)
-          return
-				let content = parts.content
+      async render() {
+        const revision = this._qrRevision = (this._qrRevision || 0) + 1
+        const content = parts.content
         content.replaceChildren()
+        try {
+          // Share the pending load so first-open instances render when it completes.
+          if (!window.QRCode) {
+            if (!window.pxQRCodeReady) {
+              window.pxQRCodeReady = new Promise((resolve, reject) => {
+                const script = document.createElement("script")
+                script.src = "https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"
+                script.onload = () => window.QRCode ? resolve() : reject(new Error("QRCode unavailable"))
+                script.onerror = () => { script.remove(); reject(new Error("QRCode load failed")) }
+                document.head.appendChild(script)
+              }).catch(error => { window.pxQRCodeReady = null; throw error })
+            }
+            await window.pxQRCodeReady
+          }
+          if (revision !== this._qrRevision) return
+          this.removeAttribute("data-qr-error")
 
-        new QRCode(content, {
+          const value = this.getAttribute("value") || this.textContent.trim()
+          if (!value) return
 
-          text: value,
-
-          width: +(this.getAttribute("size") || 160),
-
-          height: +(this.getAttribute("size") || 160),
-
-          colorDark:
-            this.getAttribute("color") || "#000000",
-
-          colorLight:
-            this.getAttribute("background") || "#ffffff",
-
-          correctLevel:
-            QRCode.CorrectLevel[
-            (this.getAttribute("ecc") || "M").toUpperCase()
-            ] || QRCode.CorrectLevel.M
-
-        })
-
+          new QRCode(content, {
+            text: value,
+            width: +(this.getAttribute("size") || 160),
+            height: +(this.getAttribute("size") || 160),
+            colorDark: this.getAttribute("color") || "#000000",
+            colorLight: this.getAttribute("background") || "#ffffff",
+            correctLevel: QRCode.CorrectLevel[
+              (this.getAttribute("ecc") || "M").toUpperCase()
+            ] ?? QRCode.CorrectLevel.M
+          })
+        } catch (error) {
+          if (revision !== this._qrRevision) return
+          this.setAttribute("data-qr-error", "true")
+          content.textContent = "No se pudo cargar el QR. Usa el enlace de verificaciÃ³n."
+          console.error("Unable to render QR code", error)
+        }
       },
 
       value: {
@@ -67,6 +70,8 @@
       display: inline-block;
       line-height: 0;
     }
+
+    :host([data-qr-error]) { line-height: 1.4; }
 
     canvas,
     img {

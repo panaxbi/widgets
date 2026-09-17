@@ -75,7 +75,7 @@ xmlns:xlink="http://www.w3.org/1999/xlink"
 					border-top: 2px solid silver !important;
 					/*position: fixed;*/
 					bottom: 0;
-					height: var(--footer-height);
+					min-height: var(--footer-height);
 					background-color: var(--bg-white) !important;
 					width: 100%;
           transition: 0.5s;

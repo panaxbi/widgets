@@ -171,6 +171,9 @@
 		<input type="hidden" name="{name()}" value="{@state:selected}"/>	
 </xsl:template>
 
+<xsl:template mode="navbar:widget" match="text()">
+</xsl:template>
+
 	<xsl:template mode="navbar:widget" match="*[*/@navbar:*]">
 		<xsl:comment>debug:info</xsl:comment>
 		<xsl:apply-templates mode="navbar:widget" select="key('filters','*')[count(key('filters',string(@navbar:position))[1]|.)=1]">

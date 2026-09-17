@@ -15,7 +15,7 @@
                         self.selectValue()
                     });
                 }
-                this.value = this.attributes.value;
+                this.value = this.getAttribute('value') || '';
             },
 
             selectValue() {
@@ -28,7 +28,9 @@
                         upperRange = ''
                     }
                 } else { }
+                let previousValue = self.getAttribute('value') || '';
                 self.value = `${lowerRange.replaceAll('-', '')}-${upperRange.replaceAll('-', '')}`;
+                if ((self.getAttribute('value') || '') !== previousValue) self.dispatchEvent(new Event('change', { bubbles: true }));
             },
 
             value: {
@@ -39,6 +41,8 @@
                     let value = `${lowerRange.replaceAll('-', '')}-${upperRange.replaceAll('-', '')}`.replace(/^-$/,'');
 								    if ((lowerRange && upperRange || !lowerRange && !upperRange && this.value) && value != formatValue(this.value)) this.setAttribute('value', value);
                     return value;
+                }, get() {
+                    return this.getAttribute('value') || '';
                 }
             }
         })

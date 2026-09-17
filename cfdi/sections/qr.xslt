@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:tfd="http://www.sat.gob.mx/TimbreFiscalDigital" xmlns:cfdi="http://www.sat.gob.mx/cfd/4" exclude-result-prefixes="tfd cfdi">
 	<xsl:template match="tfd:TimbreFiscalDigital" mode="cfdi:qr">
-		<xsl:variable name="root" select="/cfdi:Comprobante"/>
+		<xsl:variable name="root" select="ancestor::cfdi:Comprobante[1]"/>
 		<xsl:variable name="last-eight">
 			<xsl:call-template name="cfdi-last-eight">
 				<xsl:with-param name="text" select="$root/@Sello"/>
@@ -47,8 +47,8 @@
 
 	<xsl:template mode="cfdi:qr-link" match="*">
 		<xsl:param name="url"/>
-		<a href="{$url}" target="_blank">
-			<xsl:value-of select="$url"/>
+		<a href="{$url}" target="_blank" rel="noopener noreferrer" title="{$url}">
+			<xsl:text>Verificar comprobante en SAT</xsl:text>
 		</a>
 	</xsl:template>
 

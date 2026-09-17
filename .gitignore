@@ -349,3 +349,4 @@ healthchecksdb
 /.manifest
 /cache
 /cfdi/cambios.patch
+/tests

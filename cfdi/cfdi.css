@@ -1,2 +1,147 @@
 :root { --cfdi-sat-green:#1f6f50; --cfdi-sat-green-dark:#15543c; --cfdi-sat-gold:#b38e5d; --cfdi-border:#9b9b9b; --cfdi-border-soft:#d7d7d7; --cfdi-text:#222; --cfdi-muted:#5f5f5f; --cfdi-paper:#fff; --cfdi-band:#f3f5f4; --cfdi-header-bg:#e8efeb; --cfdi-table-head:#dfe7e2; }
 .xover-widget-cfdi,.cfdi-sat{box-sizing:border-box;width:100%;max-width:1120px;margin:0 auto;padding:18px;color:var(--cfdi-text);background:var(--cfdi-paper);font-family:Arial,Helvetica,sans-serif;font-size:11px;line-height:1.35}.xover-widget-cfdi *,.xover-widget-cfdi *:before,.xover-widget-cfdi *:after{box-sizing:inherit}.cfdi-header{display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:12px;margin-bottom:12px;border:1px solid var(--cfdi-border);background:var(--cfdi-header-bg)}.cfdi-header-brand{display:flex;align-items:stretch;min-width:0}.cfdi-sat-mark{display:flex;flex-direction:column;justify-content:center;width:176px;min-height:86px;padding:12px 14px;color:#fff;background:var(--cfdi-sat-green);border-right:5px solid var(--cfdi-sat-gold)}.cfdi-sat-title{font-size:30px;font-weight:700;letter-spacing:0;line-height:1}.cfdi-sat-subtitle{margin-top:5px;font-size:8px;text-transform:uppercase}.cfdi-document-title{display:flex;flex-direction:column;justify-content:center;min-width:0;padding:12px 16px}.cfdi-document-title h1{margin:0;font-size:18px;font-weight:700;color:var(--cfdi-sat-green-dark)}.cfdi-document-title p{margin:4px 0 0;color:var(--cfdi-muted)}.cfdi-header-stamp{display:grid;grid-template-rows:repeat(3,minmax(0,1fr));border-left:1px solid var(--cfdi-border);background:#fff}.cfdi-stamp-row{display:grid;grid-template-columns:132px minmax(0,1fr);align-items:center;border-bottom:1px solid var(--cfdi-border-soft)}.cfdi-stamp-row:last-child{border-bottom:0}.cfdi-stamp-row span{height:100%;padding:7px 8px;font-weight:700;color:var(--cfdi-sat-green-dark);background:var(--cfdi-band);border-right:1px solid var(--cfdi-border-soft)}.cfdi-stamp-row strong{min-width:0;padding:7px 8px;overflow-wrap:anywhere;font-weight:400}.cfdi-main-grid,.cfdi-certification-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(320px,.72fr);gap:12px;align-items:start}.cfdi-panel{margin-bottom:12px;border:1px solid var(--cfdi-border);background:#fff}.cfdi-panel h2{margin:0;padding:7px 9px;color:#fff;background:var(--cfdi-sat-green);font-size:12px;font-weight:700;text-transform:uppercase}.cfdi-panel h3,.cfdi-panel h4,.cfdi-panel h5{margin:0;padding:7px 9px;color:var(--cfdi-sat-green-dark);background:var(--cfdi-band);border-top:1px solid var(--cfdi-border-soft);border-bottom:1px solid var(--cfdi-border-soft);font-size:11px;font-weight:700}.cfdi-panel h4,.cfdi-panel h5{font-size:10px}.cfdi-two-columns{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.cfdi-party{min-width:0;border-right:1px solid var(--cfdi-border-soft)}.cfdi-party:last-child{border-right:0}.cfdi-data-grid,.cfdi-tax-summary{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.cfdi-field{display:grid;grid-template-columns:132px minmax(0,1fr);min-height:28px;border-bottom:1px solid var(--cfdi-border-soft)}.cfdi-wide{grid-column:1/-1}.cfdi-total-field .cfdi-value,.cfdi-total-field{font-weight:700}.cfdi-label{display:flex;align-items:center;min-width:0;padding:6px 8px;color:var(--cfdi-sat-green-dark);background:var(--cfdi-band);border-right:1px solid var(--cfdi-border-soft);font-weight:700}.cfdi-value{display:flex;align-items:center;min-width:0;padding:6px 8px;overflow-wrap:anywhere}.cfdi-related{padding-bottom:8px}.cfdi-related-type{padding:7px 9px}.cfdi-related ul{margin:0;padding:0 9px 0 24px}.cfdi-table-wrap{width:100%;overflow-x:auto}.cfdi-table{width:100%;border-collapse:collapse;table-layout:fixed}.cfdi-table th,.cfdi-table td{padding:6px;border-right:1px solid var(--cfdi-border-soft);border-bottom:1px solid var(--cfdi-border-soft);vertical-align:top;overflow-wrap:anywhere}.cfdi-table th:last-child,.cfdi-table td:last-child{border-right:0}.cfdi-table thead th{color:var(--cfdi-sat-green-dark);background:var(--cfdi-table-head);font-weight:700;text-align:left}.cfdi-table tbody tr:nth-child(even){background:#fafafa}.cfdi-number,.cfdi-money{text-align:right;white-space:nowrap}.cfdi-description{min-width:220px}.cfdi-concept-tax{border-top:1px solid var(--cfdi-border)}.cfdi-total-box{max-width:420px;margin-left:auto;border-left:1px solid var(--cfdi-border-soft)}.cfdi-total-line{display:grid;grid-template-columns:minmax(0,1fr) 150px;min-height:30px;border-bottom:1px solid var(--cfdi-border-soft)}.cfdi-total-line span{padding:7px 9px;color:var(--cfdi-sat-green-dark);background:var(--cfdi-band);font-weight:700}.cfdi-total-line strong{padding:7px 9px;text-align:right;font-weight:400}.cfdi-grand-total,.cfdi-grand-total span,.cfdi-grand-total strong{color:#fff;background:var(--cfdi-sat-green);font-weight:700;font-size:13px}.cfdi-qr-box{padding:12px}.cfdi-qr-placeholder{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;width:150px;height:150px;margin:0 auto 10px;padding:10px;border:8px solid #111;background:#fff}.cfdi-qr-placeholder span{background:#111}.cfdi-qr-placeholder span:nth-child(2),.cfdi-qr-placeholder span:nth-child(5),.cfdi-qr-placeholder span:nth-child(8),.cfdi-qr-placeholder span:nth-child(11),.cfdi-qr-placeholder span:nth-child(14){background:#fff}.cfdi-qr-url{margin:0;color:var(--cfdi-muted);font-size:9px;overflow-wrap:anywhere}.cfdi-seal-block{border-bottom:1px solid var(--cfdi-border-soft)}.cfdi-seal-block:last-child{border-bottom:0}.cfdi-seal-block p{margin:0;padding:8px 9px;font-size:9px;line-height:1.45;overflow-wrap:anywhere}.cfdi-payment,.cfdi-payment-document,.cfdi-payment-tax-detail,.cfdi-payment-totals{border-top:1px solid var(--cfdi-border-soft)}.cfdi-payment-document-table{min-width:980px}@media(max-width:860px){.xover-widget-cfdi,.cfdi-sat{padding:10px;font-size:10px}.cfdi-header,.cfdi-main-grid,.cfdi-certification-grid{grid-template-columns:1fr}.cfdi-header-stamp{border-left:0;border-top:1px solid var(--cfdi-border)}.cfdi-two-columns,.cfdi-data-grid,.cfdi-tax-summary{grid-template-columns:1fr}.cfdi-party{border-right:0;border-bottom:1px solid var(--cfdi-border-soft)}.cfdi-party:last-child{border-bottom:0}.cfdi-field{grid-template-columns:118px minmax(0,1fr)}.cfdi-total-box{max-width:none;border-left:0}}@media print{.xover-widget-cfdi,.cfdi-sat{max-width:none;padding:0;font-size:9px}.cfdi-panel,.cfdi-header{break-inside:avoid}.cfdi-table-wrap{overflow:visible}}
+
+/* Compact, neutral receipt layout, independent of the issuer's branding. */
+.xover-widget-cfdi {
+  --cfdi-sat-green: #222;
+  --cfdi-sat-green-dark: #222;
+  --cfdi-header-bg: #fff;
+  --cfdi-table-head: #f0f0f0;
+  --cfdi-band: #f7f7f7;
+  --cfdi-border: #b5b5b5;
+  line-height: 1.25;
+}
+.cfdi-header { grid-template-columns: minmax(0, 1fr) minmax(0, 380px); }
+.cfdi-document-title h1 { font-size: 17px; }
+.cfdi-panel h2 { padding: 4px 8px; }
+.cfdi-field { min-height: 22px; grid-template-columns: minmax(110px, 40%) minmax(0, 1fr); }
+.cfdi-label, .cfdi-value { padding: 3px 6px; }
+.cfdi-table th, .cfdi-table td { padding: 3px 6px; }
+.cfdi-pagos20 { border: 0; }
+.cfdi-pagos20 > h2 { margin-bottom: 8px; }
+.cfdi-payment { margin-bottom: 10px; border: 1px solid var(--cfdi-border); }
+.cfdi-payment > h3, .cfdi-payment-document > h4, .cfdi-payment-totals > h3 {
+  padding: 3px 8px; background: #222; color: #fff; text-align: center; text-transform: uppercase;
+}
+.cfdi-payment-document > h4 { margin-top: 5px; }
+.cfdi-payment-tax-detail h4, .cfdi-payment-tax-detail h5 { padding: 3px 6px; }
+.cfdi-payment-totals { margin-top: 8px; border: 1px solid var(--cfdi-border); }
+.cfdi-payment-totals .cfdi-total-field { grid-column: 1 / -1; }
+.cfdi-payment-totals .cfdi-value { justify-content: flex-end; }
+.cfdi-qr-box px-qrcode { padding: 8px; background: #fff; line-height: 0; }
+@media(max-width: 860px) {
+  .cfdi-header { grid-template-columns: 1fr; }
+}
+@media print {
+  .cfdi-pagos20 { break-inside: auto; }
+  .cfdi-payment-document, .cfdi-payment-tax-detail, .cfdi-payment-totals { break-inside: avoid; }
+  .cfdi-panel h2, .cfdi-panel h3, .cfdi-panel h4, .cfdi-panel h5 { break-after: avoid; }
+  .cfdi-data-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+/* Payment hierarchy and compact document/certification details. */
+.cfdi-documents-table { min-width: 700px; }
+.cfdi-documents-table caption { caption-side: top; padding: 4px 8px; background: #222; color: white; font-weight: bold; text-align: left; }
+.cfdi-documents-table > thead > tr > th:nth-child(2) { width: 30%; }
+.cfdi-documents-table > thead > tr > th:nth-child(1) { width: 10%; }
+.cfdi-document-row small { display: block; margin-top: 3px; font-size: 9px; color: #555; white-space: normal; }
+.cfdi-document-row td { padding-top: 7px; padding-bottom: 7px; }
+.cfdi-document-taxes > td { padding: 0 8px 8px; background: #fff; }
+.cfdi-documents-table .cfdi-small-table { table-layout: fixed; }
+.cfdi-payment-totals .cfdi-total-field { font-size: 15px; min-height: 38px; border-top: 2px solid #222; }
+.cfdi-payment-totals .cfdi-total-field .cfdi-value { font-weight: 700; }
+.cfdi-receipt-total { margin-left: auto; max-width: 440px; }
+.cfdi-receipt-total p { margin: 4px 8px; font-size: 10px; color: #555; }
+.cfdi-certification-grid { grid-template-columns: minmax(0, 1fr) 210px; gap: 10px; }
+.cfdi-certification-details { min-width: 0; }
+.cfdi-certification-details .cfdi-sellos { margin-bottom: 0; }
+.cfdi-certification-details .cfdi-seal-block h3 { padding: 3px 6px; }
+.cfdi-certification-details .cfdi-seal-block p { padding: 4px 6px; }
+.cfdi-qr-box { padding: 8px; }
+.cfdi-qr-url { font-size: 9px; line-height: 1.4; }
+@media(max-width: 620px) { .cfdi-certification-grid { grid-template-columns: 1fr; } }
+@media print {
+  .cfdi-documents-table { min-width: 0; }
+  .cfdi-document-row, .cfdi-document-taxes { break-inside: avoid; }
+  .cfdi-documents-table thead { display: table-header-group; }
+}
+
+/* The QR shares a row with the seals; it does not reserve empty space below the stamp. */
+.cfdi-certification-grid { grid-template-columns: minmax(0, 1fr) 194px; gap: 6px 10px; }
+.cfdi-certification-grid > .cfdi-timbre { grid-column: 1 / -1; margin-bottom: 0; }
+.cfdi-certification-grid > .cfdi-sellos { grid-column: 1; min-width: 0; margin-bottom: 0; }
+.cfdi-certification-grid > .cfdi-qr { grid-column: 2; margin-bottom: 0; }
+.cfdi-certification-grid .cfdi-seal-block h3 { padding: 3px 6px; }
+.cfdi-certification-grid .cfdi-seal-block p { padding: 4px 6px; line-height: 1.3; }
+.cfdi-qr-box { padding: 4px; text-align: center; }
+.cfdi-qr-url { margin: 2px 0 4px; font-size: 10px; line-height: 1.3; }
+@media(max-width: 620px) {
+  .cfdi-certification-grid { grid-template-columns: 1fr; }
+  .cfdi-certification-grid > .cfdi-qr { grid-column: 1; justify-self: start; width: 194px; }
+}
+@media print {
+  .cfdi-certification-grid { grid-template-columns: minmax(0, 1fr) 194px; }
+  .cfdi-certification-grid > .cfdi-qr { grid-column: 2; }
+  .cfdi-qr-url a::after { content: none; }
+}
+
+/* Plain printed-receipt presentation inspired by the supplied reference. */
+.cfdi-reference { max-width: 1000px; padding: 26px 24px; color: #111; font-size: 11px; }
+.cfdi-reference-header { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin: 8px 0 18px; }
+.cfdi-reference .cfdi-field { border: 0; min-height: 19px; grid-template-columns: 40% minmax(0,1fr); }
+.cfdi-reference .cfdi-label, .cfdi-reference .cfdi-value { background: transparent; border: 0; padding: 2px 4px; color: #111; align-items: start; }
+.cfdi-reference .cfdi-panel { border: 0; margin-bottom: 12px; }
+.cfdi-reference .cfdi-panel h2 { background: transparent; color: #111; padding: 4px 0 8px; text-transform: none; font-size: 13px; }
+.cfdi-reference .cfdi-panel h3, .cfdi-reference .cfdi-panel h4, .cfdi-reference .cfdi-panel h5 { background: #eee; color: #111; border: 0; padding: 3px 5px; }
+.cfdi-reference .cfdi-table th, .cfdi-reference .cfdi-table td { border: 1px solid #777; padding: 3px 4px; }
+.cfdi-reference .cfdi-table thead th { background: #d4d4d4; color: #111; font-size: 9px; }
+.cfdi-reference .cfdi-concept-table th:nth-child(6) { width: 28%; }
+.cfdi-reference .cfdi-concept-table { font-size: 10px; }
+.cfdi-reference .cfdi-concept-tax { border: 0; margin-top: 4px; }
+.cfdi-reference .cfdi-documents-table caption { background: #ddd; color: #111; }
+.cfdi-reference .cfdi-payment, .cfdi-reference .cfdi-payment-totals { border: 0; }
+.cfdi-reference .cfdi-payment-totals .cfdi-total-field { border-top: 1px solid #777; font-size: 13px; }
+.cfdi-settlement { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin: 12px 0 20px; align-items: start; }
+.cfdi-settlement .cfdi-totales h2 { display: none; }
+.cfdi-settlement .cfdi-total-box { max-width: none; border: 0; }
+.cfdi-settlement .cfdi-total-line { min-height: 20px; border: 0; grid-template-columns: 1fr 130px; }
+.cfdi-settlement .cfdi-total-line span, .cfdi-settlement .cfdi-total-line strong { padding: 3px 4px; color: #111; background: transparent; font-size: 11px; }
+.cfdi-settlement .cfdi-grand-total { background: transparent; border-top: 1px solid #aaa; }
+.cfdi-reference-seals { margin-bottom: 6px; }
+.cfdi-reference .cfdi-seal-block { border: 0; margin-bottom: 8px; }
+.cfdi-reference .cfdi-seal-block h3 { margin: 0; padding: 2px 0; background: transparent; font-size: 10px; color: #111; }
+.cfdi-reference .cfdi-seal-block p { margin: 0; padding: 2px 0; font-size: 9px; line-height: 1.25; overflow-wrap: anywhere; }
+.cfdi-reference-certification { display: grid; grid-template-columns: 184px minmax(0,1fr); gap: 12px; align-items: start; }
+.cfdi-reference-certification .cfdi-qr h2, .cfdi-reference-certification .cfdi-timbre h2 { display: none; }
+.cfdi-reference-certification .cfdi-qr-box { padding: 0; }
+.cfdi-reference-certification .cfdi-timbre .cfdi-field { font-size: 9px; }
+.cfdi-reference-certification .cfdi-qr-url { font-size: 9px; }
+.cfdi-print-note { text-align: center; font-size: 10px; font-weight: bold; margin-top: 24px; }
+@media(max-width: 620px) {
+ .cfdi-reference { padding: 12px; }
+ .cfdi-reference-header, .cfdi-settlement { grid-template-columns: 1fr; gap: 12px; }
+ .cfdi-reference-certification { grid-template-columns: 1fr; }
+}
+@media print {
+ .cfdi-reference { max-width: none; padding: 0; }
+ .cfdi-reference-header, .cfdi-settlement { grid-template-columns: 1fr 1fr; }
+ .cfdi-reference-certification { grid-template-columns: 184px minmax(0,1fr); }
+ .cfdi-print-note { break-inside: avoid; }
+}
+
+/* Concept detail and tax reconciliation follow the printed reference. */
+.cfdi-reference .cfdi-concept-card { margin-bottom: 10px; break-inside: avoid; }
+.cfdi-reference .cfdi-concept-table th:nth-child(6) { width: auto; }
+.cfdi-reference .cfdi-concept-table th:last-child { width: 17%; }
+.cfdi-concept-detail-grid { display: grid; grid-template-columns: 40% minmax(0,1fr); gap: 8px; margin-top: 3px; }
+.cfdi-concept-description { min-width: 0; font-size: 10px; padding: 5px; border: 1px solid #777; }
+.cfdi-concept-description p { margin: 4px 0 0; overflow-wrap: anywhere; }
+.cfdi-reference .cfdi-inline-taxes .cfdi-table { font-size: 9px; }
+.cfdi-reference .cfdi-inline-taxes .cfdi-table th, .cfdi-reference .cfdi-inline-taxes .cfdi-table td { border: 0; padding: 2px 3px; background: white; }
+.cfdi-inline-taxes .cfdi-table th:first-child { width: 17%; }
+.cfdi-visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+.cfdi-global-tax-details { margin: 8px 0; font-size: 10px; }
+.cfdi-global-tax-details > summary { cursor: pointer; color: #444; padding: 4px 0; }
+.cfdi-payment-method .cfdi-field { grid-template-columns: 34% minmax(0,1fr); }
+@media(max-width: 720px) { .cfdi-concept-detail-grid { grid-template-columns: 1fr; } }
+@media print { .cfdi-global-tax-details { display: none; } .cfdi-concept-detail-grid { grid-template-columns: 40% minmax(0,1fr); } }

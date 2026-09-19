@@ -1,80 +1,332 @@
-﻿<script>
+<template shadowrootmode="open" role="button" class="btn" tabindex="0" aria-label="Exportar a Excel">
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-file-earmark-spreadsheet" viewBox="0 0 16 16">
+        <path d="M14 14V4.5L9.5 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2M9.5 3A1.5 1.5 0 0 0 11 4.5h2V9H3V2a1 1 0 0 1 1-1h5.5zM3 12v-2h2v2zm0 1h2v2H4a1 1 0 0 1-1-1zm3 2v-2h3v2zm4 0v-2h3v1a1 1 0 0 1-1 1zm3-3h-3v-2h3zm-7 0v-2h3v2z" />
+    </svg>
+<script>
+const api = {
+        cancel: null,
+        visible(table) {
+            if (!table.isConnected || table.closest('[hidden], [inert], [aria-hidden="true"]')) return false;
+            if (table.checkVisibility && !table.checkVisibility({ checkOpacity: true, checkVisibilityCSS: true, contentVisibilityAuto: true })) return false;
+            const rect = table.getBoundingClientRect();
+            if (rect.width <= 0 || rect.height <= 0) return false;
+            for (let node = table; node; node = node.parentElement) {
+                const style = getComputedStyle(node);
+                if (style.display === 'none' || ['hidden', 'collapse'].includes(style.visibility) || Number(style.opacity) === 0 || style.contentVisibility === 'hidden') return false;
+                if (node !== table && ['hidden', 'clip'].includes(style.overflowY) && node.clientHeight === 0) return false;
+                if (node !== table && ['hidden', 'clip'].includes(style.overflowX) && node.clientWidth === 0) return false;
+            }
+            const modal = [...document.querySelectorAll('dialog:modal')].pop();
+            return !modal || modal.contains(table);
+        },
+        source(button) {
+            this.cancel?.();
+            const selector = button.getAttribute('export-source');
+            if (selector !== null) {
+                let matches;
+                try { matches = [...document.querySelectorAll(selector)]; }
+                catch { throw new Error('El selector export-source no es válido.'); }
+                if (matches.length !== 1 || !matches[0].matches('table[excel-exportable]') || !this.visible(matches[0])) {
+                    throw new Error('export-source debe identificar una única tabla visible marcada como excel-exportable.');
+                }
+                return matches[0];
+            }
+            const scope = button.closest('[data-export-scope], dialog, main, .xover-widget') || document;
+            const tables = [...scope.querySelectorAll('table')]
+                .filter(table => !table.closest('table table'))
+                .filter(table => this.visible(table));
+            const marked = tables.filter(table => table.hasAttribute('excel-exportable'));
+            const candidates = marked.length ? marked : tables;
+            if (candidates.length === 1) return candidates[0];
+            if (!candidates.length) throw new Error('No hay tablas visibles disponibles para exportar.');
+            return this.choose(button, candidates);
+        },
+        choose(button, tables) {
+            return new Promise(resolve => {
+                const previousFocus = document.activeElement;
+                const panel = document.createElement('aside');
+                panel.setAttribute('role', 'dialog');
+                panel.setAttribute('aria-label', 'Elegir tabla para exportar');
+                panel.style.cssText = 'position:fixed;top:12px;right:12px;z-index:2147483647;background:white;color:#222;border:2px solid #167447;padding:14px;box-shadow:0 3px 16px #0004;max-width:380px;max-height:45vh;overflow:auto;font:14px Arial';
+                const title = document.createElement('p');
+                title.textContent = 'Elige una tabla para exportar. Usa Ver tabla para localizarla. Escape para cancelar.';
+                panel.append(title);
+                const options = new Map();
+                let activeTable = null;
+                let frame = 0;
+                const overlay = document.createElement('div');
+                overlay.setAttribute('aria-hidden', 'true');
+                overlay.style.cssText = 'position:fixed;pointer-events:none;z-index:2147483646;background:rgba(20,121,219,.18);outline:3px solid #1479db;display:none';
+                const position = () => {
+                    frame = 0;
+                    if (!activeTable || !this.visible(activeTable)) { overlay.style.display = 'none'; return; }
+                    const rect = activeTable.getBoundingClientRect();
+                    let left = Math.max(0, rect.left), top = Math.max(0, rect.top);
+                    let right = Math.min(innerWidth, rect.right), bottom = Math.min(innerHeight, rect.bottom);
+                    for (let parent = activeTable.parentElement; parent; parent = parent.parentElement) {
+                        const style = getComputedStyle(parent), bounds = parent.getBoundingClientRect();
+                        if (/(auto|scroll|hidden|clip)/.test(style.overflowX)) { left = Math.max(left, bounds.left); right = Math.min(right, bounds.right); }
+                        if (/(auto|scroll|hidden|clip)/.test(style.overflowY)) { top = Math.max(top, bounds.top); bottom = Math.min(bottom, bounds.bottom); }
+                    }
+                    Object.assign(overlay.style, { display: right > left && bottom > top ? 'block' : 'none', left: left + 'px', top: top + 'px', width: Math.max(0, right-left) + 'px', height: Math.max(0,bottom-top) + 'px' });
+                };
+                const schedule = () => { if (!frame) frame = requestAnimationFrame(position); };
+                const highlight = table => {
+                    const previous = options.get(activeTable);
+                    if (previous) { previous.style.backgroundColor = ''; previous.style.borderColor = ''; }
+                    activeTable = table;
+                    const option = options.get(table);
+                    if (option) { option.style.backgroundColor = '#dceeff'; option.style.borderColor = '#1479db'; }
+                    if (table) table.scrollIntoView({ block: 'nearest', behavior: 'instant' });
+                    position();
+                };
+                let done = false;
+                const finish = table => {
+                    if (done) return;
+                    done = true;
+                    highlight(null);
+                    document.removeEventListener('scroll', schedule, true);
+                    window.removeEventListener('resize', schedule);
+                    cancelAnimationFrame(frame);
+                    overlay.remove();
+                    document.removeEventListener('keydown', keydown, true);
+                    panel.remove();
+                    if (this.cancel === cancel) this.cancel = null;
+                    if (previousFocus?.isConnected) previousFocus.focus();
+                    resolve(table);
+                };
+                const cancel = () => finish(null);
+                const keydown = event => {
+                    if (event.key === 'Escape') { event.stopImmediatePropagation(); cancel(); }
+                };
+                tables.forEach((table, index) => {
+                    const option = document.createElement('button');
+                    option.type = 'button';
+                    const label = table.caption?.textContent.trim() || table.getAttribute('aria-label') || table.id || [...(table.rows[0]?.cells || [])].map(cell => cell.textContent.trim()).join(' · ').slice(0, 90);
+                    option.textContent = (index + 1) + '. ' + (label || 'Tabla') + ' (' + table.rows.length + ' ' + (table.rows.length === 1 ? 'fila' : 'filas') + ')';
+                    option.style.cssText = 'display:block;margin:6px 0;padding:6px;text-align:left;width:100%;cursor:pointer';
+                    options.set(table, option);
+                    option.dataset.exportAction = 'select';
+                    option.addEventListener('click', () => { if (this.visible(table)) finish(table); else cancel(); });
+                    const row = document.createElement('div');
+                    row.style.cssText = 'display:flex;gap:6px;align-items:center';
+                    option.style.flex = '1'; option.style.minWidth = '0';
+                    const preview = document.createElement('button');
+                    preview.type = 'button'; preview.textContent = 'Ver tabla';
+                    preview.setAttribute('aria-label', 'Ver tabla ' + (index + 1));
+                    preview.dataset.exportAction = 'preview';
+                    preview.style.cssText = 'flex:none;padding:6px;cursor:pointer';
+                    preview.addEventListener('click', () => { if (this.visible(table)) highlight(table); else cancel(); });
+                    row.append(option, preview);
+                    panel.append(row);
+                });
+                const close = document.createElement('button');
+                close.type = 'button'; close.textContent = 'Cancelar'; close.addEventListener('click', cancel); panel.append(close);
+                // Keep the picker outside the reactive XOver dialog. insertAdjacentElement
+                // bypasses XOver's append hook, which can otherwise reopen the dialog.
+                document.body.insertAdjacentElement('beforeend', overlay);
+                document.body.insertAdjacentElement('beforeend', panel);
+                document.addEventListener('scroll', schedule, true);
+                window.addEventListener('resize', schedule);
+                document.addEventListener('keydown', keydown, true);
+                this.cancel = cancel;
+                panel.querySelector('button').focus();
+            });
+        }
+    };
+    const excelColumn = index => {
+        let result = '';
+        for (index += 1; index; index = Math.floor((index - 1) / 26)) result = String.fromCharCode(65 + (index - 1) % 26) + result;
+        return result;
+    };
+    const excelEscape = value => Array.from(String(value))
+        .filter(char => {
+            const code = char.charCodeAt(0);
+            return code >= 32 || code === 9 || code === 10 || code === 13;
+        })
+        .join('')
+        .replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&apos;' })[char]);
+    const excelCrc32 = bytes => {
+        let crc = -1;
+        for (const byte of bytes) {
+            crc ^= byte;
+            for (let bit = 0; bit < 8; bit += 1) crc = (crc >>> 1) ^ (crc & 1 ? 0xedb88320 : 0);
+        }
+        return (crc ^ -1) >>> 0;
+    };
+    const excelZip = files => {
+        const encoder = new TextEncoder();
+        const chunks = [], directory = [];
+        let offset = 0;
+        const number = (value, bytes) => Array.from({ length: bytes }, (_, index) => (value >>> (index * 8)) & 255);
+        for (const [path, content] of Object.entries(files)) {
+            const filename = encoder.encode(path), data = encoder.encode(content), crc = excelCrc32(data);
+            const header = new Uint8Array([...number(0x04034b50, 4), ...number(20, 2), ...number(0, 2), ...number(0, 2), ...number(0, 2), ...number(0, 2), ...number(crc, 4), ...number(data.length, 4), ...number(data.length, 4), ...number(filename.length, 2), ...number(0, 2), ...filename]);
+            chunks.push(header, data);
+            directory.push(new Uint8Array([...number(0x02014b50, 4), ...number(20, 2), ...number(20, 2), ...number(0, 2), ...number(0, 2), ...number(0, 2), ...number(0, 2), ...number(crc, 4), ...number(data.length, 4), ...number(data.length, 4), ...number(filename.length, 2), ...number(0, 2), ...number(0, 2), ...number(0, 2), ...number(0, 2), ...number(0, 4), ...number(offset, 4), ...filename]));
+            offset += header.length + data.length;
+        }
+        const directorySize = directory.reduce((size, entry) => size + entry.length, 0);
+        chunks.push(...directory, new Uint8Array([...number(0x06054b50, 4), ...number(0, 2), ...number(0, 2), ...number(files && Object.keys(files).length, 2), ...number(Object.keys(files).length, 2), ...number(directorySize, 4), ...number(offset, 4), ...number(0, 2)]));
+        return new Blob(chunks, { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    };
     let toExcel = (function (table, name) {
         if (!table.nodeType) table = document.getElementById(table);
-        table = table.cloneNode(true);
-        [...table.querySelectorAll('.non_printable,input,select,textarea,button,svg,.dropdown')].forEach(el => el.remove());
-        let myBlob = new Blob(["\ufeff" + table.outerHTML], { type: 'application/vnd.ms-excel;charset=utf-8' });
-        let url = window.URL.createObjectURL(myBlob);
-        let a = document.createElement("a");
-        document.body.appendChild(a);
+        const occupied = new Map(), rows = [], merges = [];
+        [...table.rows].forEach((row, rowIndex) => {
+            const cells = [];
+            let column = 0;
+            [...row.cells].forEach(cell => {
+                while (occupied.has(rowIndex + ':' + column)) column += 1;
+                const colSpan = Math.max(1, cell.colSpan || 1), rowSpan = Math.max(1, cell.rowSpan || 1);
+                const reference = excelColumn(column) + (rowIndex + 1);
+                // textContent avoids a layout calculation for every cell. This
+                // keeps large reports responsive while preserving their values.
+                const text = (cell.textContent || '').split(String.fromCharCode(13)).join('').trim();
+                cells.push('<c r="' + reference + '" t="inlineStr"><is><t xml:space="preserve">' + excelEscape(text) + '</t></is></c>');
+                // Preserve the data columns, but avoid merged cells. Complex HTML
+                // tables can produce overlapping spans that Excel needs to repair.
+                for (let nextRow = rowIndex; nextRow < rowIndex + rowSpan; nextRow += 1) for (let nextColumn = column; nextColumn < column + colSpan; nextColumn += 1) occupied.set(nextRow + ':' + nextColumn, true);
+                column += colSpan;
+            });
+            rows.push('<row r="' + (rowIndex + 1) + '">' + cells.join('') + '</row>');
+        });
+        const worksheet = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData>' + rows.join('') + '</sheetData></worksheet>';
+        const workbook = excelZip({
+            '[Content_Types].xml': '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/></Types>',
+            '_rels/.rels': '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>',
+            'xl/workbook.xml': '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="Exportación" sheetId="1" r:id="rId1"/></sheets></workbook>',
+            'xl/_rels/workbook.xml.rels': '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/></Relationships>',
+            'xl/worksheets/sheet1.xml': worksheet
+        });
+        const downloadWindow = (() => { try { return window.top || window; } catch { return window; } })();
+        const url = downloadWindow.URL.createObjectURL(workbook);
+        // XOver intercepts anchors in its document. Download from an isolated
+        // same-origin frame so its router cannot cancel the browser download.
+        const documentRoot = downloadWindow.document;
+        const frame = documentRoot.createElement('iframe');
+        frame.hidden = true;
+        // Do not use appendChild here: XOver observes it and can re-render the
+        // page before the browser performs the anchor's download action.
+        (documentRoot.body || documentRoot.documentElement).insertAdjacentElement('beforeend', frame);
+        // A newly inserted iframe does not always have a body yet. Create a
+        // complete blank document synchronously before placing the link in it.
+        const frameDocument = frame.contentWindow.document;
+        frameDocument.open();
+        frameDocument.write('<!doctype html><html><body></body></html>');
+        frameDocument.close();
+        const a = frameDocument.createElement('a');
         a.href = url;
-        a.download = name.replace(/^[^\d\w]/, '');
-        a.click();
-        setTimeout(function () { window.URL.revokeObjectURL(url); }, 0);
+        const filename = String(name).split('?')[0];
+        const extensionAt = filename.lastIndexOf('.');
+        const extension = extensionAt < 0 ? '' : filename.slice(extensionAt + 1).toLowerCase();
+        const stem = ['xlsx', 'xls', 'html', 'htm'].includes(extension) ? filename.slice(0, extensionAt) : filename;
+        a.download = ((/^[0-9A-Za-z_]/.test(stem) ? stem : stem.slice(1)) || 'exportacion') + '.xlsx';
+        frameDocument.body.appendChild(a);
+        // Use the iframe's native anchor method. XOver decorates click handlers
+        // in the application document, which previously consumed this download.
+        frameDocument.defaultView.HTMLAnchorElement.prototype.click.call(a);
+        setTimeout(() => { frame.remove(); downloadWindow.URL.revokeObjectURL(url); }, 10000);
     });
 
-    xover.listener.on('toExcel', async function (name = new Date().toISOString()) {
-        let table = this;
-        let progress = await xo.sources["loading.xslt"].render();
-        await xover.delay(500);
-        //if (this.Interval) window.clearInterval(this.Interval);
-        let _progress = 0;
-        let progress_bar = progress[0].querySelector('progress');
-        progress_bar.style.display = 'inline';
-
+    api.export = function (table, name = new Date().toISOString()) {
+        if (!table.matches?.("table")) throw new Error("La fuente de Excel debe ser una tabla.");
+        const hidden = [...table.querySelectorAll(':scope > colgroup > col')].flatMap(col =>
+            Array(Math.max(1, col.span || 1)).fill(col.matches('.hidden') || col.parentElement.matches('.hidden')));
         table = table.cloneNode(true);
-        table.querySelectorAll('del,.hidden,.non-printable').toArray().remove();
-        const hidden = [...document.querySelectorAll("colgroup col")].map(col => col.matches(".hidden"));
-        for (a of table.querySelectorAll('a')) {
-            a.replaceWith(a.createTextNode(a.selectFirst("text()[1]")))
-        }
-        let set_computed_background = function (cell) {
-            let border = cell.style.border;
-            let backgroundColor = cell.style.backgroundColor;
-            let color = cell.style.color;
-            let styleSheets = document.styleSheets;
-            for (let styleSheet of [...styleSheets]) {
-                try {
-                    for (let rule of [...styleSheet.rules].filter(rule => rule.selectorText && (rule.style.border || rule.style.backgroundColor || rule.style.color) && cell.matches(rule.selectorText))) {
-                        if (!border && rule.style.border) {
-                            cell.style.border = rule.style.border;
-                        }
-                        if (!backgroundColor && rule.style.backgroundColor) {
-                            cell.style.backgroundColor = rule.style.backgroundColor;
-                        }
-                        if (!color && rule.style.color) {
-                            cell.style.color = rule.style.color;
-                        }
-                    }
-                } catch (e) {
-                    console.warn(e)
-                }
-            }
+        table.querySelectorAll('del,.hidden,.non-printable').forEach(node => node.remove());
+
+        for (const a of table.querySelectorAll('a')) {
+            a.replaceWith(document.createTextNode(a.textContent))
         }
         let rows = table.getElementsByTagName("tr");
-        let r = 0;
         for (let row of rows) {
-            ++r;
-            _progress = r / rows.length * 100;
-            for (let [ix, el] of Object.entries(row.querySelectorAll("td,th"))) {
-                if (hidden[ix]) {
+            let column = 0;
+            for (const el of [...row.cells]) {
+                const span = el.colSpan || 1;
+                const visible = Array.from({ length: span }, (_, ix) => !hidden[column + ix]).filter(Boolean).length;
+                column += span;
+                if (!visible && row.closest('table') === table) {
                     el.remove();
                     continue;
                 }
-                el => set_computed_background(el);
-            }
-            if (r % (rows.length / 10) == 0) {
-                progress_bar.value = _progress;
-                await xover.delay(500);
+                if (row.closest('table') === table && visible !== span) el.colSpan = visible;
             }
         }
         toExcel(table, name.split("?")[0])
-        progress.remove();
-        if (this.Interval) window.clearInterval(this.Interval);
-    })
+    };
+    api.showLoader = function () {
+        // #loader is optional: a generic export button must work without it.
+        try {
+            const source = window.xover && xover.sources && xover.sources['#loader'];
+            return source && typeof source.render === 'function' ? source.render() : null;
+        } catch (error) {
+            return null;
+        }
+    };
+    api.hideLoader = function (rendered) {
+        try {
+            if (rendered && typeof rendered.remove === 'function') {
+                rendered.remove();
+                return;
+            }
+            if (rendered && typeof rendered.length === 'number') {
+                for (let index = 0; index < rendered.length; index += 1) {
+                    if (rendered[index] && typeof rendered[index].remove === 'function') rendered[index].remove();
+                }
+            }
+        } catch (error) {
+            // A missing or detached loader must not affect exporting.
+        }
+    };
+    api.activate = function (button) {
+        if (button._excelBusy) return;
+        button._excelBusy = true;
+        button.setAttribute('aria-busy', 'true');
+        const loader = api.showLoader();
+        const finish = function () {
+            const remove = function (rendered) { api.hideLoader(rendered); };
+            if (loader && typeof loader.then === 'function') loader.then(remove, function () {});
+            else remove(loader);
+            button._excelBusy = false;
+            button.removeAttribute('aria-busy');
+        };
+        const exportTable = function (table) {
+            if (table && table.isConnected) api.export(table, button.getAttribute('filename') || xover.stores.seed?.tag || document.title || 'exportacion');
+            finish();
+        };
+        const fail = function (error) {
+            finish();
+            window.alert(error && error.message ? error.message : 'No se pudo exportar la tabla.');
+        };
+        const run = function () {
+            let source;
+            try { source = api.source(button); }
+            catch (error) { fail(error); return; }
+            if (source && typeof source.then === 'function') source.then(exportTable, fail);
+            else {
+                try { exportTable(source); }
+                catch (error) { fail(error); }
+            }
+        };
+        // Give an optional loader one paint before processing large tables.
+        const schedule = function () { requestAnimationFrame(run); };
+        if (loader && typeof loader.then === 'function') loader.then(schedule, schedule);
+        else schedule();
+    };
+constructor.extend({
+    init() {
+        this.addEventListener('click', event => {
+            event.preventDefault();
+            api.activate(this);
+        });
+        this.addEventListener('keydown', event => {
+            if (['Enter', ' '].includes(event.key)) {
+                event.preventDefault();
+                api.activate(this);
+            }
+        });
+    }
+});
 </script>
-<template shadowrootmode="open" role="button" class="btn">
-    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-file-earmark-spreadsheet" viewBox="0 0 16 16" onclick="try { document.querySelector('table').dispatch('toExcel', xover.stores.seed.tag) } catch (e) { return Promise.reject('No se pudo crear hoja de cálculo') }">
-        <path d="M14 14V4.5L9.5 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2M9.5 3A1.5 1.5 0 0 0 11 4.5h2V9H3V2a1 1 0 0 1 1-1h5.5zM3 12v-2h2v2zm0 1h2v2H4a1 1 0 0 1-1-1zm3 2v-2h3v2zm4 0v-2h3v1a1 1 0 0 1-1 1zm3-3h-3v-2h3zm-7 0v-2h3v2z" />
-    </svg>
 </template>
